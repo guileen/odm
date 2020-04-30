@@ -65,7 +65,13 @@ func TestTable_UpdateItem(t *testing.T) {
 			},
 		}, book)
 		assert.NoError(t, err)
-		table.GetItem(types.Key{"Author": "Tom", "Title": "2"}, false, book1)
+		assert.Equal(t, &Book{
+			Author: "Tom",
+			Title:  "2",
+			Age:    10,
+			Info:   "World",
+		}, book)
+		table.GetItem(types.Key{"Author": "Tom", "Title": "2"}, nil, book1)
 		assert.Equal(t, &Book{
 			Author: "Tom",
 			Title:  "2",
@@ -86,7 +92,7 @@ func TestTable_GetItem(t *testing.T) {
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		err = table.GetItem(types.Key{"Author": "Tom", "Title": "Hello"}, false, book1)
+		err = table.GetItem(types.Key{"Author": "Tom", "Title": "Hello"}, nil, book1)
 		assert.NoError(t, err)
 		assert.Equal(t, &Book{
 			Author: "Tom",
@@ -109,7 +115,7 @@ func TestTable_DeleteItem(t *testing.T) {
 		err = table.DeleteItem(types.Key{"Author": "Tom", "Title": "3"}, nil, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		table.GetItem(types.Key{"Author": "Tom", "Title": "3"}, false, book1)
+		table.GetItem(types.Key{"Author": "Tom", "Title": "3"}, nil, book1)
 		assert.Equal(t, &Book{
 			Author: "",
 			Title:  "",
