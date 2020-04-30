@@ -12,17 +12,28 @@ import (
 // Table of DynamoDB implemetation.
 type Table struct {
 	types.TableMeta
-	conn *dynamodb.DynamoDB
+	db *DB
+}
+
+// GetDB of current table
+func (t *Table) GetDB() types.DB {
+	return t.db
 }
 
 // GetConn the Connection
 func (t *Table) GetConn() *dynamodb.DynamoDB {
-	return t.conn
+	return t.db.GetConn()
 }
 
 func convertAttributeNames(params map[string]string, targetMap map[string]*string) {
 	for k, v := range params {
 		targetMap[k] = aws.String(v)
+	}
+}
+
+func revertAttributeNames(params map[string]string, attrNames map[string]*string) {
+	for k, v := range attrNames {
+		params[k] = *v
 	}
 }
 
