@@ -5,18 +5,18 @@ import (
 	"reflect"
 	"strings"
 
-	"git.devops.com/go/odm/types"
+	"git.devops.com/go/odm"
 	"git.devops.com/go/odm/util"
 )
 
 // GetModelMeta 根据指针获取表的元信息
-func GetModelMeta(model types.Model) *types.TableMeta {
+func GetModelMeta(model odm.Model) *odm.TableMeta {
 	t := reflect.TypeOf(model)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
-	meta := new(types.TableMeta)
-	if getter, ok := model.(types.TableConfigGetter); ok {
+	meta := new(odm.TableMeta)
+	if getter, ok := model.(odm.TableConfigGetter); ok {
 		meta.TableName = getter.TableConfig().Name
 	}
 	if meta.TableName == "" {

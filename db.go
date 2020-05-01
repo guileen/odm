@@ -1,4 +1,4 @@
-package types
+package odm
 
 // Config is Connection Configuration.
 type Config interface {

@@ -1,5 +1,7 @@
 package types
 
+import "git.devops.com/go/odm"
+
 type AsyncAction interface {
 	WaitDone() error
 }
@@ -9,6 +11,6 @@ type AsyncResult interface {
 }
 
 type FindResult interface {
-	One(model Model) error
-	List(models []Model) error
+	One(model odm.Model) error
+	List(models []odm.Model) error
 }

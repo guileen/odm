@@ -1,8 +1,8 @@
 package dynamo
 
 import (
+	"git.devops.com/go/odm"
 	"git.devops.com/go/odm/meta"
-	"git.devops.com/go/odm/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -41,7 +41,7 @@ func (db *DB) GetConn() *dynamodb.DynamoDB {
 	return db.conn
 }
 
-func (db *DB) Table(model types.Model) types.Table {
+func (db *DB) Table(model odm.Model) odm.Table {
 	modelMeta := meta.GetModelMeta(model)
 	table := new(Table)
 	table.db = db
@@ -49,7 +49,7 @@ func (db *DB) Table(model types.Model) types.Table {
 	return table
 }
 
-func (db *DB) GetTable(name string) types.Table {
+func (db *DB) GetTable(name string) odm.Table {
 	table := new(Table)
 	table.db = db
 	table.TableName = name
@@ -60,7 +60,7 @@ func (db *DB) Close() {
 	// Nothing to do.
 }
 
-func (db *DB) BatchGetItem(options []types.BatchGet, unprocessedItems *[]types.BatchGet, results ...interface{}) error {
+func (db *DB) BatchGetItem(options []odm.BatchGet, unprocessedItems *[]odm.BatchGet, results ...interface{}) error {
 	input := &dynamodb.BatchGetItemInput{
 		RequestItems: map[string]*dynamodb.KeysAndAttributes{},
 	}
@@ -106,10 +106,10 @@ func (db *DB) BatchGetItem(options []types.BatchGet, unprocessedItems *[]types.B
 	// Handle UnprocessedKyes
 	// 测试时以 input.RequestItem 代替
 	for tableName, requestItem := range out.UnprocessedKeys {
-		rawItem := types.BatchGet{
+		rawItem := odm.BatchGet{
 			TableName:  tableName,
 			NameParams: map[string]string{},
-			Keys:       []types.Key{},
+			Keys:       []odm.Key{},
 		}
 		if requestItem.ConsistentRead != nil {
 			rawItem.ConsistentRead = *requestItem.ConsistentRead
@@ -122,7 +122,7 @@ func (db *DB) BatchGetItem(options []types.BatchGet, unprocessedItems *[]types.B
 		}
 		if requestItem.Keys != nil {
 			for _, keyMap := range requestItem.Keys {
-				key := make(types.Key)
+				key := make(odm.Key)
 				err = dynamodbattribute.UnmarshalMap(keyMap, key)
 				if err != nil {
 					return err
@@ -135,14 +135,14 @@ func (db *DB) BatchGetItem(options []types.BatchGet, unprocessedItems *[]types.B
 	return err
 }
 
-func (db *DB) BatchWriteItem(options []types.BatchWrite, unprocessedItems *[]types.BatchWrite) error {
+func (db *DB) BatchWriteItem(options []odm.BatchWrite, unprocessedItems *[]odm.BatchWrite) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (db *DB) TransactGetItems(gets []types.TransGet, results ...types.Model) error {
+func (db *DB) TransactGetItems(gets []odm.TransGet, results ...odm.Model) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (db *DB) TransactWriteItems(writes []types.TransWrite) error {
+func (db *DB) TransactWriteItems(writes []odm.TransWrite) error {
 	panic("not implemented") // TODO: Implement
 }

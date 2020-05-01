@@ -1,4 +1,4 @@
-package types
+package odm
 
 type Map map[string]interface{}
 

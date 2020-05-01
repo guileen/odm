@@ -4,12 +4,11 @@ import (
 	"strconv"
 	"testing"
 
+	"git.devops.com/go/odm"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 
 	"github.com/stretchr/testify/assert"
-
-	"git.devops.com/go/odm/types"
 )
 
 const END_POINT = "http://127.0.0.1:8000"
@@ -21,7 +20,7 @@ type Book struct {
 	Info   string
 }
 
-func GetTestTable(t *testing.T) types.Table {
+func GetTestTable(t *testing.T) odm.Table {
 	creds := credentials.NewStaticCredentials("123", "123", "")
 
 	db, err := OpenDB(&aws.Config{
@@ -59,8 +58,8 @@ func TestTable_UpdateItem(t *testing.T) {
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		err = table.UpdateItem(types.Key{"Author": "Tom", "Title": "2"}, "SET Info=:Info", &types.Condition{
-			ValueParams: types.Map{
+		err = table.UpdateItem(odm.Key{"Author": "Tom", "Title": "2"}, "SET Info=:Info", &odm.Condition{
+			ValueParams: odm.Map{
 				":Info": "World",
 			},
 		}, book)
@@ -71,7 +70,7 @@ func TestTable_UpdateItem(t *testing.T) {
 			Age:    10,
 			Info:   "World",
 		}, book)
-		table.GetItem(types.Key{"Author": "Tom", "Title": "2"}, nil, book1)
+		table.GetItem(odm.Key{"Author": "Tom", "Title": "2"}, nil, book1)
 		assert.Equal(t, &Book{
 			Author: "Tom",
 			Title:  "2",
@@ -92,7 +91,7 @@ func TestTable_GetItem(t *testing.T) {
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		err = table.GetItem(types.Key{"Author": "Tom", "Title": "Hello"}, nil, book1)
+		err = table.GetItem(odm.Key{"Author": "Tom", "Title": "Hello"}, nil, book1)
 		assert.NoError(t, err)
 		assert.Equal(t, &Book{
 			Author: "Tom",
@@ -112,10 +111,10 @@ func TestTable_DeleteItem(t *testing.T) {
 		table := GetTestTable(t)
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
-		err = table.DeleteItem(types.Key{"Author": "Tom", "Title": "3"}, nil, nil)
+		err = table.DeleteItem(odm.Key{"Author": "Tom", "Title": "3"}, nil, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		table.GetItem(types.Key{"Author": "Tom", "Title": "3"}, nil, book1)
+		table.GetItem(odm.Key{"Author": "Tom", "Title": "3"}, nil, book1)
 		assert.Equal(t, &Book{
 			Author: "",
 			Title:  "",
@@ -137,10 +136,10 @@ func TestTable_Query(t *testing.T) {
 	}
 	t.Run("ASC page", func(t *testing.T) {
 		books := []Book{}
-		offsetKey := make(types.Key)
-		err := table.Query(&types.QueryOption{
+		offsetKey := make(odm.Key)
+		err := table.Query(&odm.QueryOption{
 			KeyConditionExpression: "Author = :Author and Title > :Title",
-			ValueParams: types.Map{
+			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
 			},
@@ -148,9 +147,9 @@ func TestTable_Query(t *testing.T) {
 		}, offsetKey, &books)
 		assert.NoError(t, err)
 		assert.Equal(t, allBooks[:5], books)
-		err = table.Query(&types.QueryOption{
+		err = table.Query(&odm.QueryOption{
 			KeyConditionExpression: "Author = :Author and Title > :Title",
-			ValueParams: types.Map{
+			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
 			},
@@ -161,10 +160,10 @@ func TestTable_Query(t *testing.T) {
 	})
 	t.Run("DESC page", func(t *testing.T) {
 		books := []Book{}
-		offsetKey := make(types.Key)
-		err := table.Query(&types.QueryOption{
+		offsetKey := make(odm.Key)
+		err := table.Query(&odm.QueryOption{
 			KeyConditionExpression: "Author = :Author and Title > :Title",
-			ValueParams: types.Map{
+			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
 			},
@@ -176,9 +175,9 @@ func TestTable_Query(t *testing.T) {
 	})
 	t.Run("Filter and Projection", func(t *testing.T) {
 		books := []Book{}
-		err := table.Query(&types.QueryOption{
+		err := table.Query(&odm.QueryOption{
 			KeyConditionExpression: "Author = :Author and Title > :Title",
-			ValueParams: types.Map{
+			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
 				":Age":    5,

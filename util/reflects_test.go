@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"git.devops.com/go/odm/types"
+	"git.devops.com/go/odm"
 )
 
 type Book struct {
@@ -17,21 +17,21 @@ func TestExtractModelInfo(t *testing.T) {
 	type args struct {
 		pkField string
 		skField string
-		model   types.Model
+		model   odm.Model
 	}
 	tests := []struct {
 		name  string
 		args  args
-		want  types.Map
-		want1 types.Map
+		want  odm.Map
+		want1 odm.Map
 	}{
 		{
 			"Extract PK only", args{"Author", "", &Book{"Tome", "Hello", 15}},
-			types.Map{"Author": "Tome"}, types.Map{"Title": "Hello", "Age": 15},
+			odm.Map{"Author": "Tome"}, odm.Map{"Title": "Hello", "Age": 15},
 		},
 		{
 			"Extract PK only", args{"Author", "Title", &Book{"Tome", "Hello", 15}},
-			types.Map{"Author": "Tome", "Title": "Hello"}, types.Map{"Age": 15},
+			odm.Map{"Author": "Tome", "Title": "Hello"}, odm.Map{"Age": 15},
 		},
 		// TODO: Add test cases.
 	}
@@ -50,15 +50,15 @@ func TestExtractModelInfo(t *testing.T) {
 
 func TestMapToExpression(t *testing.T) {
 	type args struct {
-		m types.Map
+		m odm.Map
 	}
 	tests := []struct {
 		name  string
 		args  args
 		want  string
-		want1 types.Map
+		want1 odm.Map
 	}{
-		{"PlainObject", args{types.Map{"Author": "Tom", "Title": "Hello", "Age": 13}}, "Author=:Author and Title=:Title and Age=:Age", types.Map{":Author": "Tom", ":Title": "Hello", ":Age": 13}},
+		{"PlainObject", args{odm.Map{"Author": "Tom", "Title": "Hello", "Age": 13}}, "Author=:Author and Title=:Title and Age=:Age", odm.Map{":Author": "Tom", ":Title": "Hello", ":Age": 13}},
 		// TODO: Add test cases for a.b=:a_b
 	}
 	for _, tt := range tests {

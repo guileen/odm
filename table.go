@@ -1,4 +1,4 @@
-package types
+package odm
 
 // Table 表的基本底层操作, 按照DynamoDB的操作进行对应抽象
 type Table interface {
@@ -15,7 +15,7 @@ type Table interface {
 	// Query and fill in items, StartKey will be replaced after query
 	// result is slice of Model
 	// Example:
-	// 		offsetKey := make(types.Key)
+	// 		offsetKey := make(odm.Key)
 	// 		items := []Item{}
 	// 		table.Query(query, offsetKey, &items)
 	Query(query *QueryOption, offsetKey Key, results interface{}) error

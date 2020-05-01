@@ -3,7 +3,7 @@ package dynamo
 import (
 	"errors"
 
-	"git.devops.com/go/odm/types"
+	"git.devops.com/go/odm"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -11,12 +11,12 @@ import (
 
 // Table of DynamoDB implemetation.
 type Table struct {
-	types.TableMeta
+	odm.TableMeta
 	db *DB
 }
 
 // GetDB of current table
-func (t *Table) GetDB() types.DB {
+func (t *Table) GetDB() odm.DB {
 	return t.db
 }
 
@@ -38,7 +38,7 @@ func revertAttributeNames(params map[string]string, attrNames map[string]*string
 }
 
 // PutItem put a item, will replace entire item.
-func (t *Table) PutItem(item types.Model, cond *types.Condition) error {
+func (t *Table) PutItem(item odm.Model, cond *odm.Condition) error {
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (t *Table) PutItem(item types.Model, cond *types.Condition) error {
 }
 
 // UpdateItem attributes. item will fill base on ReturnValues.
-func (t *Table) UpdateItem(key types.Key, updateExpression string, cond *types.Condition, result types.Model) error {
+func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.Condition, result odm.Model) error {
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (t *Table) UpdateItem(key types.Key, updateExpression string, cond *types.C
 }
 
 // GetItem get an item
-func (t *Table) GetItem(key types.Key, opt *types.GetOption, item types.Model) error {
+func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func (t *Table) GetItem(key types.Key, opt *types.GetOption, item types.Model) e
 }
 
 // DeleteItem returns deleted item if item provide
-func (t *Table) DeleteItem(key types.Key, cond *types.Condition, result types.Model) error {
+func (t *Table) DeleteItem(key odm.Key, cond *odm.Condition, result odm.Model) error {
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
@@ -167,12 +167,12 @@ func (t *Table) DeleteItem(key types.Key, cond *types.Condition, result types.Mo
 	return err
 }
 
-func (t *Table) Scan(query *types.QueryOption, offsetKey types.Key, items interface{}) error {
+func (t *Table) Scan(query *odm.QueryOption, offsetKey odm.Key, items interface{}) error {
 	panic("Not implement scan")
 }
 
 // Query and fill in items, StartKey will be replaced after query
-func (t *Table) Query(query *types.QueryOption, offsetKey types.Key, items interface{}) error {
+func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Key, items interface{}) error {
 	if query == nil {
 		return errors.New("QueryOptions is required for Table.Query, ")
 	}
