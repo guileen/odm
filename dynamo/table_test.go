@@ -138,7 +138,7 @@ func TestTable_Query(t *testing.T) {
 		books := []Book{}
 		offsetKey := make(odm.Key)
 		err := table.Query(&odm.QueryOption{
-			KeyConditionExpression: "Author = :Author and Title > :Title",
+			KeyFilter: "Author = :Author and Title > :Title",
 			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
@@ -148,7 +148,7 @@ func TestTable_Query(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, allBooks[:5], books)
 		err = table.Query(&odm.QueryOption{
-			KeyConditionExpression: "Author = :Author and Title > :Title",
+			KeyFilter: "Author = :Author and Title > :Title",
 			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
@@ -162,7 +162,7 @@ func TestTable_Query(t *testing.T) {
 		books := []Book{}
 		offsetKey := make(odm.Key)
 		err := table.Query(&odm.QueryOption{
-			KeyConditionExpression: "Author = :Author and Title > :Title",
+			KeyFilter: "Author = :Author and Title > :Title",
 			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
@@ -176,14 +176,14 @@ func TestTable_Query(t *testing.T) {
 	t.Run("Filter and Projection", func(t *testing.T) {
 		books := []Book{}
 		err := table.Query(&odm.QueryOption{
-			KeyConditionExpression: "Author = :Author and Title > :Title",
+			KeyFilter: "Author = :Author and Title > :Title",
 			ValueParams: odm.Map{
 				":Author": "Jack",
 				":Title":  "Book",
 				":Age":    5,
 			},
-			FilterExpression:     "Age=:Age",
-			ProjectionExpression: "Title, Age",
+			Filter: "Age=:Age",
+			Select: "Title, Age",
 		}, nil, &books)
 		assert.NoError(t, err)
 		assert.Equal(t, &Book{

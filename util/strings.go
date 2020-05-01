@@ -14,3 +14,12 @@ func ToSnakeCase(str string) string {
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	return strings.ToLower(snake)
 }
+
+func IndexOfStringSlice(strs []string, str string) int {
+	for i, s := range strs {
+		if s == str {
+			return i
+		}
+	}
+	return -1
+}

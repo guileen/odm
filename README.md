@@ -116,3 +116,5 @@ RedisCache、MemoryCache、MixCache（级联 MemoryCache 和 RedisCache）
 ```
 go test ./...
 ```
+
+1K6xyaVMc4_C98x9cuXN

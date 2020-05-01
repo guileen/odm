@@ -26,37 +26,37 @@ type Pool interface {
 }
 
 type TransGet struct {
-	TableName            string
-	ProjectionExpression string
-	NameParams           map[string]string
-	Key                  Key
+	TableName  string
+	Select     string
+	NameParams map[string]string
+	Key        Key
 }
 
 type TransWrite struct {
 	TableName string
 	// PUT UPDATE DELETE
 	Operation string
-	// Condition check
-	ConditionExpression string                 `type:"string"`
-	NameParams          map[string]string      `type:"map"`
-	ValueParams         map[string]interface{} `type:"map"`
+	// Filter check
+	Filter      string
+	NameParams  map[string]string
+	ValueParams map[string]interface{}
 	// required for PUT
 	Item interface{}
 	// required for DELETE and UPDATE
-	Key Key `type:"map" required:"true"`
+	Key Key
 	// required for UPDATE
-	UpdateExpression string
+	Update string
 	// enum: NONE and ALL_OLD  (for PUT, DELETE)
 	// enum: NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW (for UPDATE)
 	ReturnValuesOnConditionCheckFailure string
 }
 
 type BatchGet struct {
-	TableName            string
-	ConsistentRead       bool `type:"boolean"`
-	ProjectionExpression string
-	NameParams           map[string]string
-	Keys                 []Key
+	TableName  string
+	Consistent bool
+	Select     string
+	NameParams map[string]string
+	Keys       []Key
 }
 
 type BatchWrite struct {

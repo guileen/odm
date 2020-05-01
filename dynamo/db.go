@@ -76,11 +76,11 @@ func (db *DB) BatchGetItem(options []odm.BatchGet, unprocessedItems *[]odm.Batch
 			continue
 		}
 		optIn := &dynamodb.KeysAndAttributes{}
-		if opt.ConsistentRead {
-			optIn.ConsistentRead = aws.Bool(opt.ConsistentRead)
+		if opt.Consistent {
+			optIn.ConsistentRead = aws.Bool(opt.Consistent)
 		}
-		if opt.ProjectionExpression != "" {
-			optIn.ProjectionExpression = aws.String(opt.ProjectionExpression)
+		if opt.Select != "" {
+			optIn.ProjectionExpression = aws.String(opt.Select)
 		}
 		if opt.NameParams != nil && len(opt.NameParams) > 0 {
 			convertAttributeNames(opt.NameParams, optIn.ExpressionAttributeNames)
@@ -112,13 +112,13 @@ func (db *DB) BatchGetItem(options []odm.BatchGet, unprocessedItems *[]odm.Batch
 			Keys:       []odm.Key{},
 		}
 		if requestItem.ConsistentRead != nil {
-			rawItem.ConsistentRead = *requestItem.ConsistentRead
+			rawItem.Consistent = *requestItem.ConsistentRead
 		}
 		if requestItem.ExpressionAttributeNames != nil {
 			revertAttributeNames(rawItem.NameParams, requestItem.ExpressionAttributeNames)
 		}
 		if requestItem.ProjectionExpression != nil {
-			rawItem.ProjectionExpression = *requestItem.ProjectionExpression
+			rawItem.Select = *requestItem.ProjectionExpression
 		}
 		if requestItem.Keys != nil {
 			for _, keyMap := range requestItem.Keys {

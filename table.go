@@ -24,56 +24,40 @@ type Table interface {
 type Key map[string]interface{}
 
 type Condition struct {
-	ConditionExpression string            `type:"string"`
-	NameParams          map[string]string `type:"map"`
-	ValueParams         Map               `type:"map"`
+	Filter      string
+	NameParams  map[string]string
+	ValueParams Map
 }
 
 type GetOption struct {
-	ConsistentRead       bool `type:"boolean"`
-	ProjectionExpression string
-	NameParams           map[string]string
-}
-
-type UpdateOption struct {
-	// Condition
-	ConditionExpression string            `type:"string"`
-	NameParams          map[string]string `type:"map"`
-	ValueParams         Map               `type:"map"`
-	// UpdateExpression          string
-	// ReturnValues     *string `type:"string" enum:"ReturnValue"`
-}
-
-type DeleteOption struct {
-	// Condition
-	ConditionExpression string            `type:"string"`
-	NameParams          map[string]string `type:"map"`
-	ValueParams         Map               `type:"map"`
-	// ReturnValues              *string
+	Consistent bool
+	Select     string
+	NameParams map[string]string
 }
 
 type QueryOption struct {
 	// 查询表达式
-	FilterExpression       string `type:"string"`
-	KeyConditionExpression string `type:"string"`
-	ProjectionExpression   string `type:"string"`
+	Filter    string
+	KeyFilter string
+	// Select 对应着 ProjectionExpression，更简短更易理解
+	Select string
 
 	// 查询参数
-	NameParams  map[string]string `type:"map"`
-	ValueParams Map               `type:"map"`
+	NameParams  map[string]string
+	ValueParams Map
 
 	// 查询限制
-	ConsistentRead bool   `type:"boolean"`
-	Limit          int64  `min:"1" type:"integer"`
-	IndexName      string `min:"3" type:"string"`
-	Desc           bool   // 默认升序，默认false。向其他数据库迁移的时候，这里需要注意，可能不兼容，需要提供额外的排序信息。
+	Consistent bool
+	Limit      int64
+	IndexName  string
+	Desc       bool // 默认升序，默认false。向其他数据库迁移的时候，这里需要注意，可能不兼容，需要提供额外的排序信息。
 	// 这个决定了Key的扫描方向
 	// ScanIndexForward       *bool              `type:"boolean"`   default is true. ascending
 
 	// ExclusiveStartKey 由 StartKey 参数提供
 	// ExclusiveStartKey      Map               `type:"map"`
 
-	// Select 并没有什么用，只是关于信息范围的。无需指定
+	// QueryInput.Select 并没有什么用，只是关于信息范围的。无需指定
 	// Select string `type:"string" enum:"Select"`
 }
 
@@ -81,6 +65,6 @@ type ScanOption struct {
 	QueryOption
 	// ScanOption 没有KeyConditionExpression
 	// 下面两个字段是关于多进程并行扫描的
-	Segment       *int64 `type:"integer"`
-	TotalSegments *int64 `min:"1" type:"integer"`
+	Segment       int64
+	TotalSegments int64
 }

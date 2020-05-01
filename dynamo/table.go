@@ -55,8 +55,8 @@ func (t *Table) PutItem(item odm.Model, cond *odm.Condition) error {
 				return err
 			}
 		}
-		if cond.ConditionExpression != "" {
-			input.ConditionExpression = aws.String(cond.ConditionExpression)
+		if cond.Filter != "" {
+			input.ConditionExpression = aws.String(cond.Filter)
 		}
 		if cond.NameParams != nil {
 			input.ExpressionAttributeNames = make(map[string]*string)
@@ -85,8 +85,8 @@ func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.Condi
 				return err
 			}
 		}
-		if cond.ConditionExpression != "" {
-			input.ConditionExpression = aws.String(cond.ConditionExpression)
+		if cond.Filter != "" {
+			input.ConditionExpression = aws.String(cond.Filter)
 		}
 		if cond.NameParams != nil {
 			input.ExpressionAttributeNames = make(map[string]*string)
@@ -114,11 +114,11 @@ func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
 		TableName: aws.String(t.TableName),
 	}
 	if opt != nil {
-		if opt.ConsistentRead {
-			input.ConsistentRead = aws.Bool(opt.ConsistentRead)
+		if opt.Consistent {
+			input.ConsistentRead = aws.Bool(opt.Consistent)
 		}
-		if opt.ProjectionExpression != "" {
-			input.ProjectionExpression = aws.String(opt.ProjectionExpression)
+		if opt.Select != "" {
+			input.ProjectionExpression = aws.String(opt.Select)
 		}
 		if opt.NameParams != nil {
 			convertAttributeNames(opt.NameParams, input.ExpressionAttributeNames)
@@ -149,8 +149,8 @@ func (t *Table) DeleteItem(key odm.Key, cond *odm.Condition, result odm.Model) e
 				return err
 			}
 		}
-		if cond.ConditionExpression != "" {
-			input.ConditionExpression = aws.String(cond.ConditionExpression)
+		if cond.Filter != "" {
+			input.ConditionExpression = aws.String(cond.Filter)
 		}
 		if cond.NameParams != nil {
 			input.ExpressionAttributeNames = make(map[string]*string)
@@ -176,12 +176,12 @@ func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Key, items interface
 	if query == nil {
 		return errors.New("QueryOptions is required for Table.Query, ")
 	}
-	if query.KeyConditionExpression == "" {
+	if query.KeyFilter == "" {
 		return t.Scan(query, offsetKey, items)
 	}
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(t.TableName),
-		KeyConditionExpression: aws.String(query.KeyConditionExpression),
+		KeyConditionExpression: aws.String(query.KeyFilter),
 	}
 	var err error
 	if offsetKey != nil && len(offsetKey) > 0 {
@@ -200,14 +200,14 @@ func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Key, items interface
 		input.ExpressionAttributeNames = make(map[string]*string)
 		convertAttributeNames(query.NameParams, input.ExpressionAttributeNames)
 	}
-	if query.FilterExpression != "" {
-		input.FilterExpression = aws.String(query.FilterExpression)
+	if query.Filter != "" {
+		input.FilterExpression = aws.String(query.Filter)
 	}
-	if query.ProjectionExpression != "" {
-		input.ProjectionExpression = aws.String(query.ProjectionExpression)
+	if query.Select != "" {
+		input.ProjectionExpression = aws.String(query.Select)
 	}
-	if query.ConsistentRead {
-		input.ConsistentRead = aws.Bool(query.ConsistentRead)
+	if query.Consistent {
+		input.ConsistentRead = aws.Bool(query.Consistent)
 	}
 	if query.Limit != 0 {
 		input.Limit = aws.Int64(query.Limit)
