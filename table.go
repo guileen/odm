@@ -68,3 +68,30 @@ type ScanOption struct {
 	Segment       int64
 	TotalSegments int64
 }
+
+type KeyBuilder struct {
+	PartitionKey string
+	SortingKey   string
+}
+
+func (m *KeyBuilder) Make(pk interface{}, sk interface{}) Key {
+	k := Key{
+		m.PartitionKey: pk,
+	}
+	if m.SortingKey != "" {
+		k[m.SortingKey] = sk
+	}
+	return k
+}
+
+func (m *KeyBuilder) EqualExpression(pkValue interface{}, skValue interface{}) (string, Map) {
+	expr := m.PartitionKey + "=:" + m.PartitionKey
+	valueParams := Map{
+		":" + m.PartitionKey: pkValue,
+	}
+	if m.SortingKey != "" {
+		expr = expr + " and " + m.SortingKey + "=:" + m.SortingKey
+		valueParams[":"+m.SortingKey] = skValue
+	}
+	return expr, valueParams
+}

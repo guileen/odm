@@ -1,13 +1,52 @@
 package dynamo
 
 import (
+	"net/url"
+
 	"git.devops.com/go/odm"
 	"git.devops.com/go/odm/meta"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
+
+func init() {
+	odm.Register("dynamo", &Opener{})
+}
+
+type Opener struct {
+}
+
+func (o *Opener) Open(connectString string) (odm.DB, error) {
+	cfg, err := ParseConnectString(connectString)
+	if err != nil {
+		return nil, err
+	}
+	return OpenDB(cfg)
+}
+
+func ParseConnectString(connectString string) (*aws.Config, error) {
+	u, err := url.Parse(connectString)
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	id := q.Get("id")
+	secret := q.Get("secret")
+	token := q.Get("token")
+	region := q.Get("region")
+	cred := credentials.NewStaticCredentials(id, secret, token)
+	cfg := &aws.Config{
+		Credentials: cred,
+		Region:      aws.String(region),
+	}
+	if u.Scheme == "http" {
+		cfg.Endpoint = aws.String(u.Scheme + "://" + u.Host)
+	}
+	return cfg, nil
+}
 
 // Open dynamodb client
 func openConnection(cfg *aws.Config) (*dynamodb.DynamoDB, error) {

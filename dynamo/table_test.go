@@ -5,13 +5,9 @@ import (
 	"testing"
 
 	"git.devops.com/go/odm"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 
 	"github.com/stretchr/testify/assert"
 )
-
-const END_POINT = "http://127.0.0.1:8000"
 
 type Book struct {
 	Author string
@@ -21,13 +17,7 @@ type Book struct {
 }
 
 func GetTestTable(t *testing.T) odm.Table {
-	creds := credentials.NewStaticCredentials("123", "123", "")
-
-	db, err := OpenDB(&aws.Config{
-		Credentials: creds,
-		Endpoint:    aws.String(END_POINT),
-		Region:      aws.String("localhost"),
-	})
+	db, err := odm.Open("dynamo", "http://127.0.0.1:8000?id=123&secret=456&token=789&region=localhost")
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
 	table := db.GetTable("book")
