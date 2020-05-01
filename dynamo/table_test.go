@@ -58,7 +58,7 @@ func TestTable_UpdateItem(t *testing.T) {
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		err = table.UpdateItem(odm.Key{"Author": "Tom", "Title": "2"}, "SET Info=:Info", &odm.Condition{
+		err = table.UpdateItem(odm.Key{"Author": "Tom", "Title": "2"}, "SET Info=:Info", &odm.WriteOption{
 			ValueParams: odm.Map{
 				":Info": "World",
 			},

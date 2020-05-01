@@ -5,13 +5,13 @@ type Table interface {
 	// GetDB returns instanceof DB
 	GetDB() DB
 	// put a item, will replace entire item.
-	PutItem(item Model, cond *Condition) error
+	PutItem(item Model, cond *WriteOption) error
 	// Update attributes. item will fill base on ReturnValues.
-	UpdateItem(key Key, updateExpr string, opt *Condition, result Model) error
+	UpdateItem(key Key, updateExpr string, opt *WriteOption, result Model) error
 	// get a item
 	GetItem(key Key, opt *GetOption, result Model) error
 	// returns deleted item
-	DeleteItem(key Key, opt *Condition, result Model) error
+	DeleteItem(key Key, opt *WriteOption, result Model) error
 	// Query and fill in items, StartKey will be replaced after query
 	// result is slice of Model
 	// Example:
@@ -23,7 +23,7 @@ type Table interface {
 
 type Key map[string]interface{}
 
-type Condition struct {
+type WriteOption struct {
 	Filter      string
 	NameParams  map[string]string
 	ValueParams Map

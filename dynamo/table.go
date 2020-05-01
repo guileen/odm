@@ -38,7 +38,7 @@ func revertAttributeNames(params map[string]string, attrNames map[string]*string
 }
 
 // PutItem put a item, will replace entire item.
-func (t *Table) PutItem(item odm.Model, cond *odm.Condition) error {
+func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption) error {
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (t *Table) PutItem(item odm.Model, cond *odm.Condition) error {
 }
 
 // UpdateItem attributes. item will fill base on ReturnValues.
-func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.Condition, result odm.Model) error {
+func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.WriteOption, result odm.Model) error {
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
 }
 
 // DeleteItem returns deleted item if item provide
-func (t *Table) DeleteItem(key odm.Key, cond *odm.Condition, result odm.Model) error {
+func (t *Table) DeleteItem(key odm.Key, cond *odm.WriteOption, result odm.Model) error {
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
