@@ -109,3 +109,10 @@ Cache接口封装缓存常规操作。包含 GetItem、PutItem、DeleteItem
 
 ### Cache 实现
 RedisCache、MemoryCache、MixCache（级联 MemoryCache 和 RedisCache）
+
+
+## Test
+
+```
+go test ./...
+```
