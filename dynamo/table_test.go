@@ -131,6 +131,7 @@ func TestTable_Query(t *testing.T) {
 		allBooks = append(allBooks, Book{
 			Author: "Jack",
 			Title:  "Book" + strconv.Itoa(i),
+			Age:    int64(i),
 		})
 		table.PutItem(&allBooks[i], nil)
 	}
@@ -172,5 +173,24 @@ func TestTable_Query(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, len(allBooks), len(books))
 		assert.NotEqual(t, allBooks, books)
+	})
+	t.Run("Filter and Projection", func(t *testing.T) {
+		books := []Book{}
+		err := table.Query(&types.QueryOption{
+			KeyConditionExpression: "Author = :Author and Title > :Title",
+			ValueParams: types.Map{
+				":Author": "Jack",
+				":Title":  "Book",
+				":Age":    5,
+			},
+			FilterExpression:     "Age=:Age",
+			ProjectionExpression: "Title, Age",
+		}, nil, &books)
+		assert.NoError(t, err)
+		assert.Equal(t, &Book{
+			Author: "",
+			Title:  "Book5",
+			Age:    5,
+		}, &books[0])
 	})
 }
