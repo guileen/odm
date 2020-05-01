@@ -10,7 +10,8 @@ import (
 )
 
 func Test_ConnectString(t *testing.T) {
-	s := "http://127.0.0.1:8000?id=123&secret=456&token=789&region=localhost"
+	// s := "AccessKey=[You Access Key];SecretKey=[You Secret Key]+;Region=cn-northwest-1"
+	s := "AccessKey=123;SecretKey=456;Token=789;Region=localhost;Endpoint=http://127.0.0.1:8000"
 	cfg, err := ParseConnectString(s)
 	assert.NoError(t, err)
 	assert.Equal(t, &aws.Config{

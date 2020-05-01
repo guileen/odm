@@ -13,8 +13,12 @@ ODM:
         ✔ Delete @done(20-05-01 15:06)
         ✔ Example @done(20-05-01 19:41)
     DB:
-        ☐ !如何批量更新满足某个条件的记录
-    连接池: @high 
+        ☐ TransactWrite @critical 
+        ☐ TransactGet @critical 
+        ☐ BatchWrite @high 
+        ☐ BatchRead @high 
+        ☐ 在DB上封装类似Gorm的易用性操作
+    连接池: 
         ✔ odm.Open() @done(20-05-01 19:41) @lasted(50s)
         ☐ !连接池 ...
         ☐ 超时等异常处理

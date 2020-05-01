@@ -5,7 +5,11 @@
 
 ## 建立连接 odm.Open(dbtype, connect_string)
 ```
-db,err := odm.Open("dynamodb", "http://127.0.0.1:8000?id=123&secret=456&token=789&region=localhost")
+import (
+	"git.devops.com/go/odm"
+	_ "git.devops.com/go/odm/dynamo"
+)
+db,err := odm.Open("dynamodb", "AccessKey=123;SecretKey=456;Token=789;Region=localhost;Endpoint=http://127.0.0.1:8000")
 db.Close()
 ```
 

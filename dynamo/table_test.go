@@ -14,11 +14,19 @@ type Book struct {
 	Author string
 	Title  string
 	Age    int64
-	Info   string
+	// 自定义数据库字段
+	JSONInfo  string `json:"json_info"`
+	DyTagInfo string `json:"dyInfo" dynamodbav:"dy_info"`
 }
 
+// Localhost
+var dbpath = "AccessKey=123;SecretKey=456;Token=789;Region=localhost;Endpoint=http://127.0.0.1:8000"
+
+// Development environment
+// var dbpath = "AccessKey=AKIAX24KZ5UPZSJY4FGV;SecretKey=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;Region=cn-northwest-1"
+
 func GetTestTable(t *testing.T) odm.Table {
-	db, err := odm.Open("dynamo", "http://127.0.0.1:8000?id=123&secret=456&token=789&region=localhost")
+	db, err := odm.Open("dynamo", dbpath)
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
 	table := db.GetTable("book")
@@ -49,7 +57,7 @@ func TestTable_UpdateItem(t *testing.T) {
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		err = table.UpdateItem(odm.Key{"Author": "Tom", "Title": "2"}, "SET Info=:Info", &odm.WriteOption{
+		err = table.UpdateItem(odm.Key{"Author": "Tom", "Title": "2"}, "SET json_info=:Info", &odm.WriteOption{
 			ValueParams: odm.Map{
 				":Info": "World",
 			},
@@ -59,14 +67,16 @@ func TestTable_UpdateItem(t *testing.T) {
 			Author: "Tom",
 			Title:  "2",
 			Age:    10,
-			Info:   "World",
+			// JSONInfo is mapped with json_info
+			JSONInfo: "World",
 		}, book)
 		table.GetItem(odm.Key{"Author": "Tom", "Title": "2"}, nil, book1)
 		assert.Equal(t, &Book{
 			Author: "Tom",
 			Title:  "2",
 			Age:    10,
-			Info:   "World",
+			//
+			JSONInfo: "World",
 		}, book1)
 	})
 }
@@ -74,9 +84,11 @@ func TestTable_UpdateItem(t *testing.T) {
 func TestTable_GetItem(t *testing.T) {
 	t.Run("GetItem", func(t *testing.T) {
 		book := &Book{
-			Author: "Tom",
-			Title:  "Hello",
-			Age:    10,
+			Author:    "Tom",
+			Title:     "Hello",
+			Age:       10,
+			JSONInfo:  "JSON",
+			DyTagInfo: "DyTag",
 		}
 		table := GetTestTable(t)
 		err := table.PutItem(book, nil)
@@ -85,9 +97,11 @@ func TestTable_GetItem(t *testing.T) {
 		err = table.GetItem(odm.Key{"Author": "Tom", "Title": "Hello"}, nil, book1)
 		assert.NoError(t, err)
 		assert.Equal(t, &Book{
-			Author: "Tom",
-			Title:  "Hello",
-			Age:    10,
+			Author:    "Tom",
+			Title:     "Hello",
+			Age:       10,
+			JSONInfo:  "JSON",
+			DyTagInfo: "DyTag",
 		}, book1)
 	})
 }
@@ -186,7 +200,7 @@ func TestTable_Query(t *testing.T) {
 }
 
 func ExampleTable_Query() {
-	db, err := odm.Open("dynamo", "http://127.0.0.1:8000?id=123&secret=456&token=789&region=localhost")
+	db, err := odm.Open("dynamo", dbpath)
 	if err != nil {
 		fmt.Errorf("Can't connect to dynamo db. %s\n", err.Error())
 	}

@@ -1,7 +1,7 @@
 package dynamo
 
 import (
-	"net/url"
+	"strings"
 
 	"git.devops.com/go/odm"
 	"git.devops.com/go/odm/meta"
@@ -13,7 +13,9 @@ import (
 )
 
 func init() {
-	odm.Register("dynamo", &Opener{})
+	opener := &Opener{}
+	odm.Register("dynamo", opener)
+	odm.Register("dynamodb", opener)
 }
 
 type Opener struct {
@@ -28,22 +30,34 @@ func (o *Opener) Open(connectString string) (odm.DB, error) {
 }
 
 func ParseConnectString(connectString string) (*aws.Config, error) {
-	u, err := url.Parse(connectString)
-	if err != nil {
-		return nil, err
+	parts := strings.Split(connectString, ";")
+	cfg := &aws.Config{}
+	var accessKey, secretKey, token string
+	for _, part := range parts {
+		part = strings.Trim(part, " ")
+		if part != "" {
+			kv := strings.SplitN(part, "=", 2)
+			v := kv[1]
+			switch strings.ToLower(kv[0]) {
+			case "accesskey":
+				accessKey = v
+				break
+			case "secretkey":
+				secretKey = v
+			case "region":
+				cfg.Region = aws.String(v)
+			case "token":
+				token = v
+				break
+			case "endpoint":
+				cfg.Endpoint = aws.String(v)
+				break
+			default:
+			}
+		}
 	}
-	q := u.Query()
-	id := q.Get("id")
-	secret := q.Get("secret")
-	token := q.Get("token")
-	region := q.Get("region")
-	cred := credentials.NewStaticCredentials(id, secret, token)
-	cfg := &aws.Config{
-		Credentials: cred,
-		Region:      aws.String(region),
-	}
-	if u.Scheme == "http" {
-		cfg.Endpoint = aws.String(u.Scheme + "://" + u.Host)
+	if accessKey != "" && secretKey != "" {
+		cfg.Credentials = credentials.NewStaticCredentials(accessKey, secretKey, token)
 	}
 	return cfg, nil
 }
