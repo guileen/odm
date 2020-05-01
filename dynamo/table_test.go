@@ -1,6 +1,7 @@
 package dynamo
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -133,10 +134,10 @@ func TestTable_Query(t *testing.T) {
 				":Author": "Jack",
 				":Title":  "Book",
 			},
-			Limit: 5,
+			Limit: 3,
 		}, offsetKey, &books)
 		assert.NoError(t, err)
-		assert.Equal(t, allBooks[:5], books)
+		assert.Equal(t, allBooks[:3], books)
 		err = table.Query(&odm.QueryOption{
 			KeyFilter: "Author = :Author and Title > :Title",
 			ValueParams: odm.Map{
@@ -146,7 +147,7 @@ func TestTable_Query(t *testing.T) {
 			Limit: 5,
 		}, offsetKey, &books)
 		assert.NoError(t, err)
-		assert.Equal(t, allBooks[5:], books)
+		assert.Equal(t, allBooks[3:8], books)
 	})
 	t.Run("DESC page", func(t *testing.T) {
 		books := []Book{}
@@ -182,4 +183,44 @@ func TestTable_Query(t *testing.T) {
 			Age:    5,
 		}, &books[0])
 	})
+}
+
+func ExampleTable_Query() {
+	db, err := odm.Open("dynamo", "http://127.0.0.1:8000?id=123&secret=456&token=789&region=localhost")
+	if err != nil {
+		fmt.Errorf("Can't connect to dynamo db. %s\n", err.Error())
+	}
+	table := db.GetTable("book")
+	allBooks := []Book{}
+	for i := 0; i < 10; i++ {
+		allBooks = append(allBooks, Book{
+			Author: "Alice",
+			Title:  "Book" + strconv.Itoa(i),
+			Age:    int64(i),
+		})
+		table.PutItem(&allBooks[i], nil)
+	}
+	offsetKey := make(odm.Key)
+	books := []Book{}
+	err = table.Query(&odm.QueryOption{
+		KeyFilter: "Author = :Author and Title > :Title",
+		ValueParams: odm.Map{
+			":Author": "Jack",
+			":Title":  "Book2",
+		},
+		Limit: 1,
+	}, offsetKey, &books)
+	fmt.Println(books[0].Title)
+	err = table.Query(&odm.QueryOption{
+		KeyFilter: "Author = :Author and Title > :Title",
+		ValueParams: odm.Map{
+			":Author": "Jack",
+			":Title":  "Book2",
+		},
+		Limit: 1,
+	}, offsetKey, &books)
+	fmt.Println(books[0].Title)
+	// Output:
+	// Book3
+	// Book4
 }

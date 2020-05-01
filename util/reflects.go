@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 
@@ -39,4 +40,20 @@ func MapToExpression(m odm.Map) (string, odm.Map) {
 		attr[":"+k] = v
 	}
 	return strings.Join(strs, " and "), attr
+}
+
+// ClearSlice ClearSlice(&items)  items=[]Something{...}
+func ClearSlice(aryptr interface{}) error {
+	t := reflect.TypeOf(aryptr)
+	val := reflect.ValueOf(aryptr)
+	if t.Kind() != reflect.Ptr {
+		return errors.New("Input is not pointer to slice.")
+	}
+	t = t.Elem()
+	val = val.Elem()
+	if t.Kind() != reflect.Slice {
+		return errors.New("Input is not slice.")
+	}
+	val.SetLen(0)
+	return nil
 }

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -72,4 +73,14 @@ func TestMapToExpression(t *testing.T) {
 			}
 		})
 	}
+}
+
+func ExampleClearSlice() {
+	book := []Book{Book{"Tome", "Hi", 1}}
+	fmt.Println("begin", book)
+	ClearSlice(&book)
+	fmt.Println("final", book)
+	// Output:
+	// begin [{Tome Hi 1}]
+	// final []
 }

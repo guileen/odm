@@ -2,8 +2,10 @@ package dynamo
 
 import (
 	"errors"
+	"fmt"
 
 	"git.devops.com/go/odm"
+	"git.devops.com/go/odm/util"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -219,7 +221,12 @@ func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Key, items interface
 		input.IndexName = aws.String(query.IndexName)
 	}
 	out, err := t.GetConn().Query(input)
-	if out != nil && err == nil {
+	if err != nil {
+		return fmt.Errorf("Fail to execute Query on %s. %w", t.TableName, err)
+	}
+	if out == nil {
+		util.ClearSlice(items)
+	} else {
 		err = dynamodbattribute.UnmarshalListOfMaps(out.Items, items)
 		if offsetKey != nil && err == nil {
 			err = dynamodbattribute.UnmarshalMap(out.LastEvaluatedKey, &offsetKey)
