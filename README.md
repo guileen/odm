@@ -43,10 +43,17 @@ TODO 根据Model定义生成表
 
 Table 用于抽象数据表的操作，对应Dynamo的Table，MongoDB的Collection，MySQL的Table。操作以Dynamo为基础进行设计。
 
-有两种方式获得Table。 `db.Table("table_name")` 这种方式只能获取已经存在于数据库中的表。`db.Table(&Book{})` 这种方式可以获得Book对应的表，如果表不存在则会在*localhost测试环境*自动创建（生产环境仍要运维创建）。为了能够获得创建表的必要信息，我们需要对Table增加注解。
+有两种方式获得Table。 `db.Table("table_name")` 这种方式只能获取已经存在于数据库中的表。`db.Table(&Book{})` 这种方式可以获得Book对应的表，如果表不存在则会在*localhost测试环境*自动创建（*生产环境仍要运维创建*）。为了能够获得创建表的必要信息，我们需要对Table增加注解。
 
 ```
-
+type Book struct {
+	Author string `odm:"PK"`  // odm:"PK" 注解标记主键
+	Title  string `odm:"SK"`  // odm:"SK" 注解标记排序
+	Age    int64
+	// 自定义数据库字段
+	JSONInfo  string `json:"json_info"`
+	DyTagInfo string `json:"dyInfo" dynamodbav:"dy_info"`
+}
 ```
 
 
