@@ -87,7 +87,7 @@ func OpenDB(cfg *aws.Config) (*DB, error) {
 	}
 	db := &DB{
 		conn:                conn,
-		enableTableCreation: *cfg.Region == "localhost" || odm.IsTableCreationEnabled(),
+		enableTableCreation: *cfg.Region == "localhost",
 		tableMap:            make(map[string]*Table),
 		tableMetaMap:        make(map[string]*odm.TableMeta),
 	}
