@@ -2,24 +2,29 @@ package odm
 
 import "errors"
 
-type DBOpener interface {
-	Open(connectString string) (DB, error)
-}
-
-var openers map[string]DBOpener
+var dialectMap map[string]Dialect
 
 func init() {
-	openers = make(map[string]DBOpener)
+	dialectMap = make(map[string]Dialect)
 }
 
-func Register(dbtype string, opener DBOpener) {
-	openers[dbtype] = opener
+func RegisterDialect(dbtype string, opener Dialect) {
+	dialectMap[dbtype] = opener
 }
 
-func Open(dbtype string, connectString string) (DB, error) {
-	opener := openers[dbtype]
-	if opener == nil {
+func GetDialect(dbtype string) Dialect {
+	return dialectMap[dbtype]
+}
+func Open(dbtype string, connectString string) (*ODMDB, error) {
+	dialect := GetDialect(dbtype)
+	if dialect == nil {
 		return nil, errors.New("No DB dialect <" + dbtype + "> register. Try `import \"git.devops.com/go/odm/dynamodb\"`")
 	}
-	return opener.Open(connectString)
+	dialectDB, err := dialect.Open(connectString)
+	if err != nil {
+		return nil, err
+	}
+	return &ODMDB{
+		DialectDB: dialectDB,
+	}, nil
 }

@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"git.devops.com/go/odm"
-	"git.devops.com/go/odm/meta"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -13,20 +12,24 @@ import (
 )
 
 func init() {
-	opener := &Opener{}
-	odm.Register("dynamo", opener)
-	odm.Register("dynamodb", opener)
+	dialect := &DynamodbDialectDB{}
+	odm.RegisterDialect("dynamo", dialect)
+	odm.RegisterDialect("dynamodb", dialect)
 }
 
-type Opener struct {
+type DynamodbDialectDB struct {
 }
 
-func (o *Opener) Open(connectString string) (odm.DB, error) {
+func (d *DynamodbDialectDB) Open(connectString string) (odm.DialectDB, error) {
 	cfg, err := ParseConnectString(connectString)
 	if err != nil {
 		return nil, err
 	}
 	return OpenDB(cfg)
+}
+
+func (d *DynamodbDialectDB) GetName() string {
+	return "dynamodb"
 }
 
 func ParseConnectString(connectString string) (*aws.Config, error) {
@@ -94,19 +97,18 @@ func (db *DB) GetConn() *dynamodb.DynamoDB {
 	return db.conn
 }
 
-func (db *DB) Table(model odm.Model) odm.Table {
-	modelMeta := meta.GetModelMeta(model)
-	table := new(Table)
-	table.db = db
-	table.TableMeta = *modelMeta
-	return table
-}
-
 func (db *DB) GetTable(name string) odm.Table {
 	table := new(Table)
 	table.db = db
 	table.TableName = name
 	return table
+}
+
+func (db *DB) GetDialectTable(meta *odm.TableMeta) odm.Table {
+	return &Table{
+		db:        db,
+		TableMeta: *meta,
+	}
 }
 
 func (db *DB) Close() {

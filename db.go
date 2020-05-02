@@ -4,10 +4,18 @@ package odm
 type Config interface {
 }
 
-// DB 是对数据库的抽象
-type DB interface {
-	Table(model Model) Table
-	GetTable(name string) Table
+// ODMDB 是对数据库的抽象
+type ODMDB struct {
+	DialectDB
+}
+
+type Dialect interface {
+	Open(connectString string) (DialectDB, error)
+	GetName() string
+}
+
+type DialectDB interface {
+	GetDialectTable(*TableMeta) Table
 	// 对多表读取，不保证一致性
 	BatchGetItem(options []BatchGet, unprocessedItems *[]BatchGet, results ...interface{}) error
 	// 对多表增、删，不保证一致性
@@ -18,11 +26,6 @@ type DB interface {
 	// 一致性写，一起成功、一起失败
 	TransactWriteItems(writes []TransWrite) error
 	Close()
-}
-
-// Pool 连接池
-type Pool interface {
-	DB()
 }
 
 type TransGet struct {
@@ -63,4 +66,18 @@ type BatchWrite struct {
 	TableName  string
 	PutItems   interface{}
 	DeleteKeys []Key
+}
+
+func (db *ODMDB) Table(model Model) Table {
+	metaInfo := GetModelMeta(model)
+	return db.GetDialectTable(metaInfo)
+}
+
+func (db *ODMDB) GetTable(tableName string, partitionKey string, sortingKey string) Table {
+	metaInfo := &TableMeta{
+		TableName:    tableName,
+		PartitionKey: partitionKey,
+		SortingKey:   sortingKey,
+	}
+	return db.GetDialectTable(metaInfo)
 }

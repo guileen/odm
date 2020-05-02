@@ -1,10 +1,8 @@
-package meta
+package odm
 
 import (
 	"reflect"
 	"testing"
-
-	"git.devops.com/go/odm"
 )
 
 type Book struct {
@@ -13,8 +11,8 @@ type Book struct {
 	Age    int
 }
 
-func (b *Book) GetConfig() *odm.TableConfig {
-	return &odm.TableConfig{
+func (b *Book) GetConfig() *TableConfig {
+	return &TableConfig{
 		Name:     "books",
 		UseCache: true,
 		TTL:      60,
@@ -27,14 +25,14 @@ func (b *Book) TableName() string {
 
 func TestGetModelMeta(t *testing.T) {
 	type args struct {
-		model odm.Model
+		model Model
 	}
 	tests := []struct {
 		name string
 		args args
-		want *odm.TableMeta
+		want *TableMeta
 	}{
-		{"Normal", args{new(Book)}, &odm.TableMeta{TableName: "book", PartitionKey: "author", SortingKey: "title"}},
+		{"Normal", args{new(Book)}, &TableMeta{TableName: "book", PartitionKey: "author", SortingKey: "title"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

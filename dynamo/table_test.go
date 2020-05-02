@@ -29,7 +29,7 @@ func GetTestTable(t *testing.T) odm.Table {
 	db, err := odm.Open("dynamo", dbpath)
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
-	table := db.GetTable("book")
+	table := db.Table(&Book{})
 	return table
 }
 
@@ -204,7 +204,7 @@ func ExampleTable_Query() {
 	if err != nil {
 		fmt.Errorf("Can't connect to dynamo db. %s\n", err.Error())
 	}
-	table := db.GetTable("book")
+	table := db.Table(&Book{})
 	allBooks := []Book{}
 	for i := 0; i < 10; i++ {
 		allBooks = append(allBooks, Book{

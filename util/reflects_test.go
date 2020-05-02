@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-
-	"git.devops.com/go/odm"
 )
 
 type Book struct {
@@ -18,21 +16,21 @@ func TestExtractModelInfo(t *testing.T) {
 	type args struct {
 		pkField string
 		skField string
-		model   odm.Model
+		model   interface{}
 	}
 	tests := []struct {
 		name  string
 		args  args
-		want  odm.Map
-		want1 odm.Map
+		want  map[string]interface{}
+		want1 map[string]interface{}
 	}{
 		{
 			"Extract PK only", args{"Author", "", &Book{"Tome", "Hello", 15}},
-			odm.Map{"Author": "Tome"}, odm.Map{"Title": "Hello", "Age": 15},
+			map[string]interface{}{"Author": "Tome"}, map[string]interface{}{"Title": "Hello", "Age": 15},
 		},
 		{
 			"Extract PK only", args{"Author", "Title", &Book{"Tome", "Hello", 15}},
-			odm.Map{"Author": "Tome", "Title": "Hello"}, odm.Map{"Age": 15},
+			map[string]interface{}{"Author": "Tome", "Title": "Hello"}, map[string]interface{}{"Age": 15},
 		},
 		// TODO: Add test cases.
 	}
@@ -51,15 +49,15 @@ func TestExtractModelInfo(t *testing.T) {
 
 func TestMapToExpression(t *testing.T) {
 	type args struct {
-		m odm.Map
+		m map[string]interface{}
 	}
 	tests := []struct {
 		name  string
 		args  args
 		want  string
-		want1 odm.Map
+		want1 map[string]interface{}
 	}{
-		{"PlainObject", args{odm.Map{"Author": "Tom", "Title": "Hello", "Age": 13}}, "Author=:Author and Title=:Title and Age=:Age", odm.Map{":Author": "Tom", ":Title": "Hello", ":Age": 13}},
+		{"PlainObject", args{map[string]interface{}{"Author": "Tom", "Title": "Hello", "Age": 13}}, "Author=:Author and Title=:Title and Age=:Age", map[string]interface{}{":Author": "Tom", ":Title": "Hello", ":Age": 13}},
 		// TODO: Add test cases for a.b=:a_b
 	}
 	for _, tt := range tests {

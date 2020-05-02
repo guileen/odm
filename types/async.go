@@ -1,6 +1,4 @@
-package util
-
-import "git.devops.com/go/odm/types"
+package types
 
 // FinalAction is something already done.
 type finalAction struct {

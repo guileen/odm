@@ -18,7 +18,7 @@ type Table struct {
 }
 
 // GetDB of current table
-func (t *Table) GetDB() odm.DB {
+func (t *Table) GetDB() odm.DialectDB {
 	return t.db
 }
 

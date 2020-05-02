@@ -3,7 +3,7 @@ package odm
 // Table 表的基本底层操作, 按照DynamoDB的操作进行对应抽象
 type Table interface {
 	// GetDB returns instanceof DB
-	GetDB() DB
+	GetDB() DialectDB
 	// put a item, will replace entire item.
 	PutItem(item Model, cond *WriteOption) error
 	// Update attributes. item will fill base on ReturnValues.

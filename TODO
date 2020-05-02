@@ -4,6 +4,8 @@ ODM:
     ✔ 重新建一个仓库，之前提交了不该提交的 test 文件 @done(20-05-01 15:07)
     ✔ types 这个包名感觉容易冲突， @done(20-05-01 15:07)
     ☐ 优化异常处理使用 fmt.Errorf("xxx%w", err) @high 
+    Design:
+        ☐ 将方言和接口分开 DB，odm.Open()出来的DB包含易用性接口，但各个方言实现，只需要考虑底层的
     Table:
         ✔ Test case @done(20-05-01 15:07)
         ✔ Insert @done(20-05-01 15:06)
@@ -13,6 +15,7 @@ ODM:
         ✔ Delete @done(20-05-01 15:06)
         ✔ Example @done(20-05-01 19:41)
     DB:
+        ☐ CreateTable @critical @today 
         ☐ TransactWrite @critical 
         ☐ TransactGet @critical 
         ☐ BatchWrite @high 
@@ -22,7 +25,8 @@ ODM:
         ✔ odm.Open() @done(20-05-01 19:41) @lasted(50s)
         ☐ !连接池 ...
         ☐ 超时等异常处理
-        ☐ 理解DynamoDB的Session和直接Config的区别
+        ☐ 理解DynamoDB的Session和直接Config的区别。
+        ☐ 了解DynamoDB是长连接还是短连接
     Schema生成:
         ☐ 数据库字段按小写下划线
     易用性接口:
