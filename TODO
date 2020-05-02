@@ -21,7 +21,7 @@ ODM:
         ☐ TransactWrite @critical 
         ☐ TransactGet @critical 
         ☐ BatchWrite @high 
-        ☐ BatchRead @high 
+        ☐ BatchRead @critical 
     ODMDB:
         ☐ 缓存反射元信息，优化性能
         ☐ 更方便的Update，传key和map

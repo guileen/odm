@@ -15,7 +15,6 @@ type Dialect interface {
 }
 
 type DialectDB interface {
-	GetTable(tableName string) Table
 	GetDialectTable(*TableMeta) Table
 	DeleteTable(tableName string) error
 	// 对多表读取，不保证一致性
@@ -73,8 +72,4 @@ type BatchWrite struct {
 func (db *ODMDB) Table(model Model) Table {
 	metaInfo := GetModelMeta(model)
 	return db.GetDialectTable(metaInfo)
-}
-
-func (db *ODMDB) GetTable(tableName string) Table {
-	return db.GetTable(tableName)
 }

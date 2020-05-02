@@ -236,13 +236,6 @@ func (db *DB) GetConn() *dynamodb.DynamoDB {
 	return db.conn
 }
 
-func (db *DB) GetTable(name string) odm.Table {
-	table := new(Table)
-	table.db = db
-	table.TableName = name
-	return table
-}
-
 func (db *DB) GetDialectTable(meta *odm.TableMeta) odm.Table {
 	return &Table{
 		db:        db,
