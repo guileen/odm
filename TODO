@@ -14,12 +14,17 @@ ODM:
         ✔ Find @done(20-05-01 15:06)
         ✔ Delete @done(20-05-01 15:06)
         ✔ Example @done(20-05-01 19:41)
+        ☐ Key Operation refactor. 不再需要传map @today 
     DB:
-        ☐ CreateTable @critical @today 
+        ✔ CreateTable at localhost @critical @today @done(20-05-02 16:40)
+        ☐ DeleteTable at localhost @today 
         ☐ TransactWrite @critical 
         ☐ TransactGet @critical 
         ☐ BatchWrite @high 
         ☐ BatchRead @high 
+    ODMDB:
+        ☐ 缓存反射元信息，优化性能
+        ☐ 更方便的Update，传key和map
         ☐ 在DB上封装类似Gorm的易用性操作
     连接池: 
         ✔ odm.Open() @done(20-05-01 19:41) @lasted(50s)
@@ -29,8 +34,6 @@ ODM:
         ☐ 了解DynamoDB是长连接还是短连接
     Schema生成:
         ☐ 数据库字段按小写下划线
-    易用性接口:
-        ☐ 缓存反射元信息，优化性能
     问题:
         ☐ 1.Dynamo支不支持长连接问题
         ☐ 2.根据条件同时更新多条记录的问题，批量删除

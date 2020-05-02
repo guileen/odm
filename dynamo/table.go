@@ -24,6 +24,7 @@ func (t *Table) GetDB() odm.DialectDB {
 
 // GetConn the Connection
 func (t *Table) GetConn() (*dynamodb.DynamoDB, error) {
+	fmt.Println("GetConn", t.TableMeta)
 	if t.PartitionKey == "" {
 		// TableMeta not initialized. 使用数据库来初始化
 		meta, err := t.db.GetTableMeta(t.TableName)
@@ -32,7 +33,11 @@ func (t *Table) GetConn() (*dynamodb.DynamoDB, error) {
 		}
 		t.TableMeta = *meta
 	} else {
-		t.db.createTableIfNotExists(&t.TableMeta)
+		fmt.Println("createTableIfNotExists", t.TableMeta)
+		err := t.db.createTableIfNotExists(&t.TableMeta)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return t.db.GetConn(), nil
 }
@@ -152,7 +157,9 @@ func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
 	if err != nil {
 		return err
 	}
-	err = dynamodbattribute.UnmarshalMap(result.Item, item)
+	if item != nil && result != nil && result.Item != nil {
+		err = dynamodbattribute.UnmarshalMap(result.Item, item)
+	}
 	return err
 }
 

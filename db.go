@@ -17,6 +17,7 @@ type Dialect interface {
 type DialectDB interface {
 	GetTable(tableName string) Table
 	GetDialectTable(*TableMeta) Table
+	DeleteTable(tableName string) error
 	// 对多表读取，不保证一致性
 	BatchGetItem(options []BatchGet, unprocessedItems *[]BatchGet, results ...interface{}) error
 	// 对多表增、删，不保证一致性

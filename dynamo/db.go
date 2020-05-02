@@ -1,6 +1,7 @@
 package dynamo
 
 import (
+	"fmt"
 	"strings"
 
 	"git.devops.com/go/odm"
@@ -88,6 +89,7 @@ func OpenDB(cfg *aws.Config) (*DB, error) {
 	db := &DB{
 		conn:                conn,
 		enableTableCreation: *cfg.Region == "localhost",
+		enableTableDeletion: *cfg.Region == "localhost",
 		tableMap:            make(map[string]*Table),
 		tableMetaMap:        make(map[string]*odm.TableMeta),
 	}
@@ -98,6 +100,7 @@ type DB struct {
 	conn *dynamodb.DynamoDB
 	// if this is true, then auto create table if not exists.
 	enableTableCreation bool
+	enableTableDeletion bool
 	// cache for Describe table
 	// TODO: what if table changed while running?
 	tableMetaMap map[string]*odm.TableMeta
@@ -105,22 +108,38 @@ type DB struct {
 	tableMap map[string]*Table
 }
 
+// DeleteTable only allowed on localhost
+func (db *DB) DeleteTable(tableName string) error {
+	if !db.enableTableDeletion {
+		panic("DeleteTable is not allowed")
+	}
+	conn := db.GetConn()
+	_, err := conn.DeleteTable(&dynamodb.DeleteTableInput{
+		TableName: aws.String(tableName),
+	})
+	return err
+}
+
 func (db *DB) createTableIfNotExists(meta *odm.TableMeta) error {
 	_meta, err := db.GetTableMeta(meta.TableName)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); !ok || aerr.Code() != dynamodb.ErrCodeResourceNotFoundException {
+			fmt.Println("Get Meta err", err)
 			return err
 		}
 	}
 	if _meta != nil {
 		// table exists
+		fmt.Println("Table exists")
 		return nil
 	}
+	fmt.Println("Creating table")
 	return db.createTable(meta)
 }
 
 func (db *DB) createTable(tableMeta *odm.TableMeta) error {
 	conn := db.GetConn()
+	// Key definition.
 	keySchema := []*dynamodb.KeySchemaElement{
 		&dynamodb.KeySchemaElement{
 			AttributeName: aws.String(tableMeta.PartitionKey),
@@ -137,7 +156,10 @@ func (db *DB) createTable(tableMeta *odm.TableMeta) error {
 		TableName: aws.String(tableMeta.TableName),
 		KeySchema: keySchema,
 	})
-	if out != nil {
+	// AttributeDefinitions
+	// TODO: GSI
+	// TODO: LSI
+	if err == nil && out != nil && out.TableDescription != nil {
 		db.tableMetaMap[tableMeta.TableName] = db.updateTableDescription(out.TableDescription)
 	}
 	return err
@@ -169,7 +191,7 @@ func (db *DB) GetTableMeta(tableName string) (*odm.TableMeta, error) {
 	result, err := conn.DescribeTable(&dynamodb.DescribeTableInput{
 		TableName: aws.String(tableName),
 	})
-	if result != nil {
+	if err == nil && result != nil && result.Table != nil {
 		meta = db.updateTableDescription(result.Table)
 		db.tableMetaMap[tableName] = meta
 	}

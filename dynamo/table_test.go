@@ -11,8 +11,8 @@ import (
 )
 
 type Book struct {
-	Author string
-	Title  string
+	Author string `odm:"PK"`
+	Title  string `odm:"SK"`
 	Age    int64
 	// 自定义数据库字段
 	JSONInfo  string `json:"json_info"`
@@ -25,24 +25,36 @@ var dbpath = "AccessKey=123;SecretKey=456;Token=789;Region=localhost;Endpoint=ht
 // Development environment
 // var dbpath = "AccessKey=AKIAX24KZ5UPZSJY4FGV;SecretKey=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;Region=cn-northwest-1"
 
+func resetDB(t *testing.T) {
+	db, err := odm.Open("dynamo", dbpath)
+	assert.NoError(t, err)
+	assert.NotNil(t, db)
+	db.DeleteTable("book")
+	table := db.Table(&Book{})
+	// touch the table.
+	err = table.GetItem(odm.Key{}, nil, nil)
+	assert.NoError(t, err)
+}
+
 func GetTestTable(t *testing.T) odm.Table {
 	db, err := odm.Open("dynamo", dbpath)
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
-	table := db.Table(&Book{})
+	table := db.Table("book")
 	return table
 }
 
 func TestTable_PutItem(t *testing.T) {
 	t.Run("PutItem", func(t *testing.T) {
-		book := &Book{
-			Author: "Tom",
-			Title:  "Hello",
-			Age:    10,
-		}
-		table := GetTestTable(t)
-		err := table.PutItem(book, nil)
-		assert.NoError(t, err)
+		resetDB(t)
+		// book := &Book{
+		// 	Author: "Tom",
+		// 	Title:  "Hello",
+		// 	Age:    10,
+		// }
+		// table := GetTestTable(t)
+		// err := table.PutItem(book, nil)
+		// assert.NoError(t, err)
 	})
 }
 
