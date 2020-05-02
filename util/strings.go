@@ -23,3 +23,12 @@ func IndexOfStringSlice(strs []string, str string) int {
 	}
 	return -1
 }
+
+func StringsOr(strs ...string) string {
+	for _, s := range strs {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
+}
