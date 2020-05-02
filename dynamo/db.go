@@ -5,6 +5,7 @@ import (
 
 	"git.devops.com/go/odm"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -84,13 +85,95 @@ func OpenDB(cfg *aws.Config) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db := new(DB)
-	db.conn = conn
+	db := &DB{
+		conn:                conn,
+		enableTableCreation: *cfg.Region == "localhost" || odm.IsTableCreationEnabled(),
+		tableMap:            make(map[string]*Table),
+		tableMetaMap:        make(map[string]*odm.TableMeta),
+	}
 	return db, nil
 }
 
 type DB struct {
 	conn *dynamodb.DynamoDB
+	// if this is true, then auto create table if not exists.
+	enableTableCreation bool
+	// cache for Describe table
+	// TODO: what if table changed while running?
+	tableMetaMap map[string]*odm.TableMeta
+	// cache for Table
+	tableMap map[string]*Table
+}
+
+func (db *DB) createTableIfNotExists(meta *odm.TableMeta) error {
+	_meta, err := db.GetTableMeta(meta.TableName)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); !ok || aerr.Code() != dynamodb.ErrCodeResourceNotFoundException {
+			return err
+		}
+	}
+	if _meta != nil {
+		// table exists
+		return nil
+	}
+	return db.createTable(meta)
+}
+
+func (db *DB) createTable(tableMeta *odm.TableMeta) error {
+	conn := db.GetConn()
+	keySchema := []*dynamodb.KeySchemaElement{
+		&dynamodb.KeySchemaElement{
+			AttributeName: aws.String(tableMeta.PartitionKey),
+			KeyType:       aws.String("HASH"),
+		},
+	}
+	if tableMeta.SortingKey != "" {
+		keySchema = append(keySchema, &dynamodb.KeySchemaElement{
+			AttributeName: aws.String(tableMeta.SortingKey),
+			KeyType:       aws.String("RANGE"),
+		})
+	}
+	out, err := conn.CreateTable(&dynamodb.CreateTableInput{
+		TableName: aws.String(tableMeta.TableName),
+		KeySchema: keySchema,
+	})
+	if out != nil {
+		db.tableMetaMap[tableMeta.TableName] = db.updateTableDescription(out.TableDescription)
+	}
+	return err
+}
+
+func (db *DB) updateTableDescription(tableDesc *dynamodb.TableDescription) *odm.TableMeta {
+	meta := &odm.TableMeta{
+		TableName: *tableDesc.TableName,
+	}
+	for _, key := range tableDesc.KeySchema {
+		if *key.KeyType == "HASH" {
+			meta.PartitionKey = *key.AttributeName
+		} else if *key.KeyType == "RANGE" {
+			meta.SortingKey = *key.AttributeName
+		}
+	}
+	db.tableMetaMap[*tableDesc.TableName] = meta
+	// result.Table.LocalSecondaryIndexes
+	// result.Table.GlobalSecondaryIndexes
+	return meta
+}
+
+func (db *DB) GetTableMeta(tableName string) (*odm.TableMeta, error) {
+	meta := db.tableMetaMap[tableName]
+	if meta != nil {
+		return meta, nil
+	}
+	conn := db.GetConn()
+	result, err := conn.DescribeTable(&dynamodb.DescribeTableInput{
+		TableName: aws.String(tableName),
+	})
+	if result != nil {
+		meta = db.updateTableDescription(result.Table)
+		db.tableMetaMap[tableName] = meta
+	}
+	return meta, err
 }
 
 func (db *DB) GetConn() *dynamodb.DynamoDB {

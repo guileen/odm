@@ -15,6 +15,7 @@ type Dialect interface {
 }
 
 type DialectDB interface {
+	GetTable(tableName string) Table
 	GetDialectTable(*TableMeta) Table
 	// 对多表读取，不保证一致性
 	BatchGetItem(options []BatchGet, unprocessedItems *[]BatchGet, results ...interface{}) error
@@ -73,11 +74,6 @@ func (db *ODMDB) Table(model Model) Table {
 	return db.GetDialectTable(metaInfo)
 }
 
-func (db *ODMDB) GetTable(tableName string, partitionKey string, sortingKey string) Table {
-	metaInfo := &TableMeta{
-		TableName:    tableName,
-		PartitionKey: partitionKey,
-		SortingKey:   sortingKey,
-	}
-	return db.GetDialectTable(metaInfo)
+func (db *ODMDB) GetTable(tableName string) Table {
+	return db.GetTable(tableName)
 }

@@ -45,6 +45,7 @@ Table 用于抽象数据表的操作，对应Dynamo的Table，MongoDB的Collecti
 
 ```
 table := db.GetTable("table_name")
+table := db.Table(&Book{})
 ```
 
 ### Key 类型

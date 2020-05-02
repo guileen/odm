@@ -23,8 +23,18 @@ func (t *Table) GetDB() odm.DialectDB {
 }
 
 // GetConn the Connection
-func (t *Table) GetConn() *dynamodb.DynamoDB {
-	return t.db.GetConn()
+func (t *Table) GetConn() (*dynamodb.DynamoDB, error) {
+	if t.PartitionKey == "" {
+		// TableMeta not initialized. 使用数据库来初始化
+		meta, err := t.db.GetTableMeta(t.TableName)
+		if err != nil {
+			return nil, err
+		}
+		t.TableMeta = *meta
+	} else {
+		t.db.createTableIfNotExists(&t.TableMeta)
+	}
+	return t.db.GetConn(), nil
 }
 
 func convertAttributeNames(params map[string]string, targetMap map[string]*string) {
@@ -41,6 +51,10 @@ func revertAttributeNames(params map[string]string, attrNames map[string]*string
 
 // PutItem put a item, will replace entire item.
 func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption) error {
+	conn, err := t.GetConn()
+	if err != nil {
+		return err
+	}
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
 		return err
@@ -65,12 +79,16 @@ func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption) error {
 			convertAttributeNames(cond.NameParams, input.ExpressionAttributeNames)
 		}
 	}
-	_, err = t.GetConn().PutItem(input)
+	_, err = conn.PutItem(input)
 	return err
 }
 
 // UpdateItem attributes. item will fill base on ReturnValues.
 func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.WriteOption, result odm.Model) error {
+	conn, err := t.GetConn()
+	if err != nil {
+		return err
+	}
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
@@ -98,7 +116,7 @@ func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.Write
 			input.ReturnValues = aws.String("UPDATED_NEW")
 		}
 	}
-	out, err := t.GetConn().UpdateItem(input)
+	out, err := conn.UpdateItem(input)
 	if result != nil && err == nil {
 		_ = dynamodbattribute.UnmarshalMap(out.Attributes, result)
 	}
@@ -107,6 +125,10 @@ func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.Write
 
 // GetItem get an item
 func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
+	conn, err := t.GetConn()
+	if err != nil {
+		return err
+	}
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
@@ -126,7 +148,7 @@ func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
 			convertAttributeNames(opt.NameParams, input.ExpressionAttributeNames)
 		}
 	}
-	result, err := t.GetConn().GetItem(input)
+	result, err := conn.GetItem(input)
 	if err != nil {
 		return err
 	}
@@ -136,6 +158,10 @@ func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
 
 // DeleteItem returns deleted item if item provide
 func (t *Table) DeleteItem(key odm.Key, cond *odm.WriteOption, result odm.Model) error {
+	conn, err := t.GetConn()
+	if err != nil {
+		return err
+	}
 	keyMap, err := dynamodbattribute.MarshalMap(key)
 	if err != nil {
 		return err
@@ -162,7 +188,7 @@ func (t *Table) DeleteItem(key odm.Key, cond *odm.WriteOption, result odm.Model)
 			input.ReturnValues = aws.String("ALL_OLD")
 		}
 	}
-	out, err := t.GetConn().DeleteItem(input)
+	out, err := conn.DeleteItem(input)
 	if result != nil && err == nil {
 		_ = dynamodbattribute.UnmarshalMap(out.Attributes, result)
 	}
@@ -181,11 +207,14 @@ func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Key, items interface
 	if query.KeyFilter == "" {
 		return t.Scan(query, offsetKey, items)
 	}
+	conn, err := t.GetConn()
+	if err != nil {
+		return err
+	}
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(t.TableName),
 		KeyConditionExpression: aws.String(query.KeyFilter),
 	}
-	var err error
 	if offsetKey != nil && len(offsetKey) > 0 {
 		input.ExclusiveStartKey, err = dynamodbattribute.MarshalMap(offsetKey)
 		if err != nil {
@@ -220,7 +249,7 @@ func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Key, items interface
 	if query.IndexName != "" {
 		input.IndexName = aws.String(query.IndexName)
 	}
-	out, err := t.GetConn().Query(input)
+	out, err := conn.Query(input)
 	if err != nil {
 		return fmt.Errorf("Fail to execute Query on %s. %w", t.TableName, err)
 	}

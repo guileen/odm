@@ -1,11 +1,24 @@
 package odm
 
-import "errors"
+import (
+	"errors"
+	"flag"
+	"os"
+	"strings"
+)
 
 var dialectMap map[string]Dialect
+var tableCreationEnabled bool
 
 func init() {
 	dialectMap = make(map[string]Dialect)
+	if strings.HasSuffix(os.Args[0], ".test") || flag.Lookup("test.v") != nil {
+		tableCreationEnabled = true
+	}
+}
+
+func IsTableCreationEnabled() bool {
+	return tableCreationEnabled
 }
 
 func RegisterDialect(dbtype string, opener Dialect) {
