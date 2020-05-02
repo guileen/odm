@@ -21,14 +21,14 @@ func (a *waitingAction) WaitDone() error {
 }
 
 // AsyncError return an asyncAction
-func AsyncError(err error) types.AsyncAction {
+func AsyncError(err error) AsyncAction {
 	a := new(finalAction)
 	a.err = err
 	return a
 }
 
 // RunAsync make async call easier
-func RunAsync(f func() error) types.AsyncAction {
+func RunAsync(f func() error) AsyncAction {
 	action := new(waitingAction)
 	action.doneChan = make(chan bool, 1)
 	go func() {

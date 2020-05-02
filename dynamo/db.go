@@ -12,15 +12,15 @@ import (
 )
 
 func init() {
-	dialect := &DynamodbDialectDB{}
+	dialect := &dynamoDialect{}
 	odm.RegisterDialect("dynamo", dialect)
 	odm.RegisterDialect("dynamodb", dialect)
 }
 
-type DynamodbDialectDB struct {
+type dynamoDialect struct {
 }
 
-func (d *DynamodbDialectDB) Open(connectString string) (odm.DialectDB, error) {
+func (d *dynamoDialect) Open(connectString string) (odm.DialectDB, error) {
 	cfg, err := ParseConnectString(connectString)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (d *DynamodbDialectDB) Open(connectString string) (odm.DialectDB, error) {
 	return OpenDB(cfg)
 }
 
-func (d *DynamodbDialectDB) GetName() string {
+func (d *dynamoDialect) GetName() string {
 	return "dynamodb"
 }
 
