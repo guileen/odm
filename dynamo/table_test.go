@@ -32,7 +32,7 @@ func resetDB(t *testing.T) {
 	db.DeleteTable("book")
 	table := db.Table(&Book{})
 	// touch the table.
-	err = table.GetItem(odm.Key{}, nil, nil)
+	err = table.GetItem(*table.(*Table).Key("A", "B"), nil, nil)
 	assert.NoError(t, err)
 }
 
@@ -47,14 +47,14 @@ func GetTestTable(t *testing.T) odm.Table {
 func TestTable_PutItem(t *testing.T) {
 	t.Run("PutItem", func(t *testing.T) {
 		resetDB(t)
-		// book := &Book{
-		// 	Author: "Tom",
-		// 	Title:  "Hello",
-		// 	Age:    10,
-		// }
-		// table := GetTestTable(t)
-		// err := table.PutItem(book, nil)
-		// assert.NoError(t, err)
+		book := &Book{
+			Author: "Tom",
+			Title:  "Hello",
+			Age:    10,
+		}
+		table := GetTestTable(t)
+		err := table.PutItem(book, nil)
+		assert.NoError(t, err)
 	})
 }
 

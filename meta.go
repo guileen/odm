@@ -1,7 +1,6 @@
 package odm
 
 import (
-	"fmt"
 	"reflect"
 	"sort"
 	"strings"
@@ -116,7 +115,6 @@ var typeOfBytes = reflect.TypeOf([]byte(nil))
 
 func getFieldDefine(f *reflect.StructField) *FieldDefine {
 	t := ""
-	fmt.Println("xxx", f.Name, f.Type.Kind())
 	switch f.Type.Kind() {
 	case reflect.String:
 		t = "S"

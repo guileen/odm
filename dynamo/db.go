@@ -1,7 +1,6 @@
 package dynamo
 
 import (
-	"fmt"
 	"strings"
 
 	"git.devops.com/go/odm"
@@ -13,10 +12,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
+var dbName = "dynamodb"
+
 func init() {
 	dialect := &dynamoDialect{}
 	odm.RegisterDialect("dynamo", dialect)
-	odm.RegisterDialect("dynamodb", dialect)
+	odm.RegisterDialect(dbName, dialect)
 }
 
 type dynamoDialect struct {
@@ -31,7 +32,7 @@ func (d *dynamoDialect) Open(connectString string) (odm.DialectDB, error) {
 }
 
 func (d *dynamoDialect) GetName() string {
-	return "dynamodb"
+	return dbName
 }
 
 func ParseConnectString(connectString string) (*aws.Config, error) {
@@ -124,17 +125,18 @@ func (db *DB) createTableIfNotExists(meta *odm.TableMeta) error {
 	_meta, err := db.GetTableMeta(meta.TableName)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); !ok || aerr.Code() != dynamodb.ErrCodeResourceNotFoundException {
-			fmt.Println("Get Meta err", err)
 			return err
 		}
 	}
 	if _meta != nil {
 		// table exists
-		fmt.Println("Table exists")
 		return nil
 	}
-	fmt.Println("Creating table")
 	return db.createTable(meta)
+}
+
+func (db *DB) getFieldName(f *odm.FieldDefine) string {
+	return f.GetDBFieldName(dbName)
 }
 
 func (db *DB) createTable(tableMeta *odm.TableMeta) error {
@@ -142,23 +144,47 @@ func (db *DB) createTable(tableMeta *odm.TableMeta) error {
 	// Key definition.
 	keySchema := []*dynamodb.KeySchemaElement{
 		&dynamodb.KeySchemaElement{
-			AttributeName: aws.String(tableMeta.PartitionKey),
+			AttributeName: aws.String(db.getFieldName(tableMeta.PK)),
 			KeyType:       aws.String("HASH"),
 		},
 	}
-	if tableMeta.SortingKey != "" {
+	// AttributeDefinitions
+	attrs := []*dynamodb.AttributeDefinition{
+		&dynamodb.AttributeDefinition{
+			AttributeName: aws.String(db.getFieldName(tableMeta.PK)),
+			AttributeType: aws.String(tableMeta.PK.Type),
+		},
+	}
+	if tableMeta.SK != nil {
 		keySchema = append(keySchema, &dynamodb.KeySchemaElement{
-			AttributeName: aws.String(tableMeta.SortingKey),
+			AttributeName: aws.String(db.getFieldName(tableMeta.SK)),
 			KeyType:       aws.String("RANGE"),
 		})
+		attrs = append(attrs, &dynamodb.AttributeDefinition{
+			AttributeName: aws.String(db.getFieldName(tableMeta.SK)),
+			AttributeType: aws.String(tableMeta.SK.Type),
+		})
 	}
-	out, err := conn.CreateTable(&dynamodb.CreateTableInput{
-		TableName: aws.String(tableMeta.TableName),
-		KeySchema: keySchema,
-	})
-	// AttributeDefinitions
+	// for _, f := range tableMeta.Fields {
+	// 	attrs = append(attrs, &dynamodb.AttributeDefinition{
+	// 		AttributeName: aws.String(db.getFieldName(f)),
+	// 		AttributeType: aws.String(f.Type),
+	// 	})
+	// }
 	// TODO: GSI
 	// TODO: LSI
+	out, err := conn.CreateTable(&dynamodb.CreateTableInput{
+		TableName:   aws.String(tableMeta.TableName),
+		KeySchema:   keySchema,
+		BillingMode: aws.String("PAY_PER_REQUEST"), // PAY_PER_REQUEST, PROVISIONED
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(1000),
+			WriteCapacityUnits: aws.Int64(1000),
+		},
+		// GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{},
+		// LocalSecondaryIndexes:  []*dynamodb.LocalSecondaryIndex{},
+		AttributeDefinitions: attrs,
+	})
 	if err == nil && out != nil && out.TableDescription != nil {
 		db.tableMetaMap[tableMeta.TableName] = db.updateTableDescription(out.TableDescription)
 	}
@@ -171,9 +197,17 @@ func (db *DB) updateTableDescription(tableDesc *dynamodb.TableDescription) *odm.
 	}
 	for _, key := range tableDesc.KeySchema {
 		if *key.KeyType == "HASH" {
-			meta.PartitionKey = *key.AttributeName
+			meta.PK = &odm.FieldDefine{
+				SchemaFieldName: map[string]string{
+					dbName: *key.AttributeName,
+				},
+			}
 		} else if *key.KeyType == "RANGE" {
-			meta.SortingKey = *key.AttributeName
+			meta.SK = &odm.FieldDefine{
+				SchemaFieldName: map[string]string{
+					dbName: *key.AttributeName,
+				},
+			}
 		}
 	}
 	db.tableMetaMap[*tableDesc.TableName] = meta

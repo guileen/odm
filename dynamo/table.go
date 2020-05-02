@@ -24,8 +24,7 @@ func (t *Table) GetDB() odm.DialectDB {
 
 // GetConn the Connection
 func (t *Table) GetConn() (*dynamodb.DynamoDB, error) {
-	fmt.Println("GetConn", t.TableMeta)
-	if t.PartitionKey == "" {
+	if t.getPK() == "" {
 		// TableMeta not initialized. 使用数据库来初始化
 		meta, err := t.db.GetTableMeta(t.TableName)
 		if err != nil {
@@ -33,13 +32,26 @@ func (t *Table) GetConn() (*dynamodb.DynamoDB, error) {
 		}
 		t.TableMeta = *meta
 	} else {
-		fmt.Println("createTableIfNotExists", t.TableMeta)
 		err := t.db.createTableIfNotExists(&t.TableMeta)
 		if err != nil {
 			return nil, err
 		}
 	}
 	return t.db.GetConn(), nil
+}
+
+func (t *Table) getPK() string {
+	if t.PK == nil {
+		return ""
+	}
+	return t.PK.GetDBFieldName(dbName)
+}
+
+func (t *Table) getSK() string {
+	if t.SK == nil {
+		return ""
+	}
+	return t.SK.GetDBFieldName(dbName)
 }
 
 func convertAttributeNames(params map[string]string, targetMap map[string]*string) {
@@ -51,6 +63,13 @@ func convertAttributeNames(params map[string]string, targetMap map[string]*strin
 func revertAttributeNames(params map[string]string, attrNames map[string]*string) {
 	for k, v := range attrNames {
 		params[k] = *v
+	}
+}
+
+func (t *Table) Key(pk interface{}, sk interface{}) *odm.Key {
+	return &odm.Key{
+		t.getPK(): pk,
+		t.getSK(): sk,
 	}
 }
 
