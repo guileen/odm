@@ -296,7 +296,7 @@ func (db *DB) BatchGetItem(options []odm.BatchGet, unprocessedItems *[]odm.Batch
 		rawItem := odm.BatchGet{
 			TableName:  tableName,
 			NameParams: map[string]string{},
-			Keys:       []odm.Key{},
+			Keys:       []odm.Map{},
 		}
 		if requestItem.ConsistentRead != nil {
 			rawItem.Consistent = *requestItem.ConsistentRead
@@ -309,7 +309,7 @@ func (db *DB) BatchGetItem(options []odm.BatchGet, unprocessedItems *[]odm.Batch
 		}
 		if requestItem.Keys != nil {
 			for _, keyMap := range requestItem.Keys {
-				key := make(odm.Key)
+				key := make(odm.Map)
 				err = dynamodbattribute.UnmarshalMap(keyMap, key)
 				if err != nil {
 					return err

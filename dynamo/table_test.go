@@ -32,7 +32,7 @@ func resetDB(t *testing.T) {
 	db.DeleteTable("book")
 	table := db.Table(&Book{})
 	// touch the table.
-	err = table.GetItem(*table.(*Table).Key("A", "B"), nil, nil)
+	err = table.GetItem("A", "B", nil, nil)
 	assert.NoError(t, err)
 }
 
@@ -69,7 +69,7 @@ func TestTable_UpdateItem(t *testing.T) {
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		err = table.UpdateItem(odm.Key{"Author": "Tom", "Title": "2"}, "SET json_info=:Info", &odm.WriteOption{
+		err = table.UpdateItem("Tom", "2", "SET json_info=:Info", &odm.WriteOption{
 			ValueParams: odm.Map{
 				":Info": "World",
 			},
@@ -82,7 +82,7 @@ func TestTable_UpdateItem(t *testing.T) {
 			// JSONInfo is mapped with json_info
 			JSONInfo: "World",
 		}, book)
-		table.GetItem(odm.Key{"Author": "Tom", "Title": "2"}, nil, book1)
+		table.GetItem("Tom", "2", nil, book1)
 		assert.Equal(t, &Book{
 			Author: "Tom",
 			Title:  "2",
@@ -106,7 +106,7 @@ func TestTable_GetItem(t *testing.T) {
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		err = table.GetItem(odm.Key{"Author": "Tom", "Title": "Hello"}, nil, book1)
+		err = table.GetItem("Tom", "Hello", nil, book1)
 		assert.NoError(t, err)
 		assert.Equal(t, &Book{
 			Author:    "Tom",
@@ -128,10 +128,10 @@ func TestTable_DeleteItem(t *testing.T) {
 		table := GetTestTable(t)
 		err := table.PutItem(book, nil)
 		assert.NoError(t, err)
-		err = table.DeleteItem(odm.Key{"Author": "Tom", "Title": "3"}, nil, nil)
+		err = table.DeleteItem("Tom", "3", nil, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
-		table.GetItem(odm.Key{"Author": "Tom", "Title": "3"}, nil, book1)
+		table.GetItem("Tom", "3", nil, book1)
 		assert.Equal(t, &Book{
 			Author: "",
 			Title:  "",
@@ -153,7 +153,7 @@ func TestTable_Query(t *testing.T) {
 	}
 	t.Run("ASC page", func(t *testing.T) {
 		books := []Book{}
-		offsetKey := make(odm.Key)
+		offsetKey := make(odm.Map)
 		err := table.Query(&odm.QueryOption{
 			KeyFilter: "Author = :Author and Title > :Title",
 			ValueParams: odm.Map{
@@ -177,7 +177,7 @@ func TestTable_Query(t *testing.T) {
 	})
 	t.Run("DESC page", func(t *testing.T) {
 		books := []Book{}
-		offsetKey := make(odm.Key)
+		offsetKey := make(odm.Map)
 		err := table.Query(&odm.QueryOption{
 			KeyFilter: "Author = :Author and Title > :Title",
 			ValueParams: odm.Map{
@@ -226,7 +226,7 @@ func ExampleTable_Query() {
 		})
 		table.PutItem(&allBooks[i], nil)
 	}
-	offsetKey := make(odm.Key)
+	offsetKey := make(odm.Map)
 	books := []Book{}
 	err = table.Query(&odm.QueryOption{
 		KeyFilter: "Author = :Author and Title > :Title",

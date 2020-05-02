@@ -7,21 +7,19 @@ type Table interface {
 	// put a item, will replace entire item.
 	PutItem(item Model, cond *WriteOption) error
 	// Update attributes. item will fill base on ReturnValues.
-	UpdateItem(key Key, updateExpr string, opt *WriteOption, result Model) error
+	UpdateItem(partitionKey interface{}, sortingKey interface{}, updateExpr string, opt *WriteOption, result Model) error
 	// get a item
-	GetItem(key Key, opt *GetOption, result Model) error
+	GetItem(partitionKey interface{}, sortingKey interface{}, opt *GetOption, result Model) error
 	// returns deleted item
-	DeleteItem(key Key, opt *WriteOption, result Model) error
+	DeleteItem(partitionKey interface{}, sortingKey interface{}, opt *WriteOption, result Model) error
 	// Query and fill in items, StartKey will be replaced after query
 	// result is slice of Model
 	// Example:
 	// 		offsetKey := make(odm.Key)
 	// 		items := []Item{}
 	// 		table.Query(query, offsetKey, &items)
-	Query(query *QueryOption, offsetKey Key, results interface{}) error
+	Query(query *QueryOption, offsetKey Map, results interface{}) error
 }
-
-type Key map[string]interface{}
 
 type WriteOption struct {
 	Filter      string
@@ -67,31 +65,4 @@ type ScanOption struct {
 	// 下面两个字段是关于多进程并行扫描的
 	Segment       int64
 	TotalSegments int64
-}
-
-type KeyBuilder struct {
-	PartitionKey string
-	SortingKey   string
-}
-
-func (m *KeyBuilder) Make(pk interface{}, sk interface{}) Key {
-	k := Key{
-		m.PartitionKey: pk,
-	}
-	if m.SortingKey != "" {
-		k[m.SortingKey] = sk
-	}
-	return k
-}
-
-func (m *KeyBuilder) EqualExpression(pkValue interface{}, skValue interface{}) (string, Map) {
-	expr := m.PartitionKey + "=:" + m.PartitionKey
-	valueParams := Map{
-		":" + m.PartitionKey: pkValue,
-	}
-	if m.SortingKey != "" {
-		expr = expr + " and " + m.SortingKey + "=:" + m.SortingKey
-		valueParams[":"+m.SortingKey] = skValue
-	}
-	return expr, valueParams
 }

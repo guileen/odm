@@ -33,7 +33,7 @@ type TransGet struct {
 	TableName  string
 	Select     string
 	NameParams map[string]string
-	Key        Key
+	Key        Map
 }
 
 type TransWrite struct {
@@ -47,7 +47,7 @@ type TransWrite struct {
 	// required for PUT
 	Item interface{}
 	// required for DELETE and UPDATE
-	Key Key
+	Key Map
 	// required for UPDATE
 	Update string
 	// enum: NONE and ALL_OLD  (for PUT, DELETE)
@@ -60,13 +60,13 @@ type BatchGet struct {
 	Consistent bool
 	Select     string
 	NameParams map[string]string
-	Keys       []Key
+	Keys       []Map
 }
 
 type BatchWrite struct {
 	TableName  string
 	PutItems   interface{}
-	DeleteKeys []Key
+	DeleteKeys []Map
 }
 
 func (db *ODMDB) Table(model Model) Table {

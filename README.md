@@ -56,46 +56,15 @@ type Book struct {
 }
 ```
 
+### Map 类型
 
+`type Map map[string]interface{}`
 
-
-### Key 类型
-
-Key是DynamoDB的概念，可以由1个或2个字段构成。使用一个map结构来表达。
-
-`type Key map[string]interface{}`
-
-### KeyBuilder 辅助类
-- 构造Key
+可以使用来方便的创建一个Map
 ```
-build := &KeyBuilder{"Author", "Title"}
-key1 := build.Key("Tom", "Hello World")
-key2 := build.Key("Jack", "Hi")
-```
-等价于
-```
-key1 := odm.Key{
+odm.Map{
 	"Author": "Tom",
-	"Title": "Hello World",
-}
-key2 := odm.Key{
-	"Author": "Jack",
-	"Title": "Hi",
-}
-```
-
-- 构造查询表达式
-```
-keyFilter, valueParams := build.EqualExpression("Jack", "How")
-```
-
-等价于
-
-```
-keyFilter := "Author=:Author and Title=:Title"
-valueParams := Map{
-	":Author": "Jack",
-	":Title": "How",
+	"Title": "Hello world",
 }
 ```
 
@@ -122,19 +91,19 @@ type WriteOption struct {
 ```
 Condition 类型是一个条件表达式，仅当表达式成立时，操作才能成功。
 
-### PutItem(key Key, opt WriteOption, item Model) error
+### PutItem(item Model, opt WriteOption, ) error
 PutItem 操作。替换整个item。
 
-### UpdateItem(key Key, updateExpression string, opt WriteOption, item Model) error
+### UpdateItem(pk interface{}, sk interface{}, updateExpression string, opt WriteOption, item Model) error
 Update 部分字段，根据ReturnValues返回数据到item中。
 
-### GetItem(key Key, opt GetOption, item Model) error
+### GetItem(pk interface{}, sk interface{}, opt GetOption, item Model) error
 Consistent 代表是否是一致性读。
 
-### DeleteItem(key Key, opt WriteOption, item Model) error
+### DeleteItem(pk interface{}, sk interface{}, opt WriteOption, item Model) error
 被删除对象将填充到item。
 
-### Query(startKey Key, QueryOption, items []Model) error
+### Query(QueryOption, offsetKey Map, items []Model) error
 查询列表。
 startKey 用来作性能优化。查询将从startKey开始。查询完成后，startKey将被更新。
 
@@ -157,7 +126,7 @@ type QueryOption struct {
 }
 ```
 	
-### TODO Scan(startKey M, ScanOption, items []Model) error
+### TODO Scan(ScanOption, offsetKey Map, items []Model) error
 TODO 暂不支持Scan, 与Query使用同一方法。
 
 

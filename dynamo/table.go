@@ -66,11 +66,26 @@ func revertAttributeNames(params map[string]string, attrNames map[string]*string
 	}
 }
 
-func (t *Table) Key(pk interface{}, sk interface{}) *odm.Key {
-	return &odm.Key{
+func (t *Table) key(pk interface{}, sk interface{}) (map[string]*dynamodb.AttributeValue, error) {
+	key := odm.Map{
 		t.getPK(): pk,
-		t.getSK(): sk,
 	}
+	if t.getSK() != "" && sk != nil {
+		key[t.getSK()] = sk
+	}
+	return dynamodbattribute.MarshalMap(&key)
+}
+
+func (t *Table) EqualExpression(pkValue interface{}, skValue interface{}) (string, odm.Map) {
+	expr := t.getPK() + "=:" + t.getPK()
+	valueParams := odm.Map{
+		":" + t.getPK(): pkValue,
+	}
+	if t.getSK() != "" {
+		expr = expr + " and " + t.getSK() + "=:" + t.getSK()
+		valueParams[":"+t.getSK()] = skValue
+	}
+	return expr, valueParams
 }
 
 // PutItem put a item, will replace entire item.
@@ -108,12 +123,12 @@ func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption) error {
 }
 
 // UpdateItem attributes. item will fill base on ReturnValues.
-func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.WriteOption, result odm.Model) error {
+func (t *Table) UpdateItem(pk interface{}, sk interface{}, updateExpression string, cond *odm.WriteOption, result odm.Model) error {
 	conn, err := t.GetConn()
 	if err != nil {
 		return err
 	}
-	keyMap, err := dynamodbattribute.MarshalMap(key)
+	keyMap, err := t.key(pk, sk)
 	if err != nil {
 		return err
 	}
@@ -148,12 +163,12 @@ func (t *Table) UpdateItem(key odm.Key, updateExpression string, cond *odm.Write
 }
 
 // GetItem get an item
-func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
+func (t *Table) GetItem(pk interface{}, sk interface{}, opt *odm.GetOption, item odm.Model) error {
 	conn, err := t.GetConn()
 	if err != nil {
 		return err
 	}
-	keyMap, err := dynamodbattribute.MarshalMap(key)
+	keyMap, err := t.key(pk, sk)
 	if err != nil {
 		return err
 	}
@@ -183,12 +198,12 @@ func (t *Table) GetItem(key odm.Key, opt *odm.GetOption, item odm.Model) error {
 }
 
 // DeleteItem returns deleted item if item provide
-func (t *Table) DeleteItem(key odm.Key, cond *odm.WriteOption, result odm.Model) error {
+func (t *Table) DeleteItem(pk interface{}, sk interface{}, cond *odm.WriteOption, result odm.Model) error {
 	conn, err := t.GetConn()
 	if err != nil {
 		return err
 	}
-	keyMap, err := dynamodbattribute.MarshalMap(key)
+	keyMap, err := t.key(pk, sk)
 	if err != nil {
 		return err
 	}
@@ -221,12 +236,12 @@ func (t *Table) DeleteItem(key odm.Key, cond *odm.WriteOption, result odm.Model)
 	return err
 }
 
-func (t *Table) Scan(query *odm.QueryOption, offsetKey odm.Key, items interface{}) error {
+func (t *Table) Scan(query *odm.QueryOption, offsetKey odm.Map, items interface{}) error {
 	panic("Not implement scan")
 }
 
 // Query and fill in items, StartKey will be replaced after query
-func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Key, items interface{}) error {
+func (t *Table) Query(query *odm.QueryOption, offsetKey odm.Map, items interface{}) error {
 	if query == nil {
 		return errors.New("QueryOptions is required for Table.Query, ")
 	}
