@@ -38,20 +38,41 @@ type TransGet struct {
 
 type TransWrite struct {
 	TableName string
-	// PUT UPDATE DELETE
-	Operation string
-	// Filter check
+	// First Order
+	PutItem interface{}
+	// Second Order
+	Update UpdateWrite
+	// Third Order
+	Delete DeleteWrite
+}
+
+type PutWrite struct {
+	Item        interface{}
 	Filter      string
 	NameParams  map[string]string
-	ValueParams map[string]interface{}
-	// required for PUT
-	Item interface{}
-	// required for DELETE and UPDATE
-	Key Map
-	// required for UPDATE
-	Update string
+	ValueParams Map
 	// enum: NONE and ALL_OLD  (for PUT, DELETE)
+	ReturnValuesOnConditionCheckFailure string
+}
+
+type UpdateWrite struct {
+	Expression   string
+	PartitionKey interface{}
+	SortingKey   interface{}
+	Filter       string
+	NameParams   map[string]string
+	ValueParams  Map
 	// enum: NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW (for UPDATE)
+	ReturnValuesOnConditionCheckFailure string
+}
+
+type DeleteWrite struct {
+	PartitionKey interface{}
+	SortingKey   interface{}
+	Filter       string
+	NameParams   map[string]string
+	ValueParams  Map
+	// enum: NONE and ALL_OLD  (for PUT, DELETE)
 	ReturnValuesOnConditionCheckFailure string
 }
 

@@ -88,8 +88,8 @@ func (t *Table) EqualExpression(pkValue interface{}, skValue interface{}) (strin
 	return expr, valueParams
 }
 
-// PutItem put a item, will replace entire item.
-func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption) error {
+// PutItem put a item, will replace entire item. OLD will fill in result
+func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption, result odm.Model) error {
 	conn, err := t.GetConn()
 	if err != nil {
 		return err
@@ -117,8 +117,15 @@ func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption) error {
 			input.ExpressionAttributeNames = make(map[string]*string)
 			convertAttributeNames(cond.NameParams, input.ExpressionAttributeNames)
 		}
+		if result != nil {
+			// enum: NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW (for UPDATE)
+			input.ReturnValues = aws.String("UPDATED_NEW")
+		}
 	}
-	_, err = conn.PutItem(input)
+	out, err := conn.PutItem(input)
+	if result != nil && err == nil {
+		_ = dynamodbattribute.UnmarshalMap(out.Attributes, result)
+	}
 	return err
 }
 
@@ -152,6 +159,7 @@ func (t *Table) UpdateItem(pk interface{}, sk interface{}, updateExpression stri
 			convertAttributeNames(cond.NameParams, input.ExpressionAttributeNames)
 		}
 		if result != nil {
+			// enum: NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW (for UPDATE)
 			input.ReturnValues = aws.String("UPDATED_NEW")
 		}
 	}

@@ -5,7 +5,7 @@ type Table interface {
 	// GetDB returns instanceof DB
 	GetDB() DialectDB
 	// put a item, will replace entire item.
-	PutItem(item Model, cond *WriteOption) error
+	PutItem(item Model, cond *WriteOption, result Model) error
 	// Update attributes. item will fill base on ReturnValues.
 	UpdateItem(partitionKey interface{}, sortingKey interface{}, updateExpr string, opt *WriteOption, result Model) error
 	// get a item

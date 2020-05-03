@@ -53,7 +53,7 @@ func TestTable_PutItem(t *testing.T) {
 			Age:    10,
 		}
 		table := GetTestTable(t)
-		err := table.PutItem(book, nil)
+		err := table.PutItem(book, nil, nil)
 		assert.NoError(t, err)
 	})
 }
@@ -66,7 +66,7 @@ func TestTable_UpdateItem(t *testing.T) {
 			Age:    10,
 		}
 		table := GetTestTable(t)
-		err := table.PutItem(book, nil)
+		err := table.PutItem(book, nil, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
 		err = table.UpdateItem("Tom", "2", "SET json_info=:Info", &odm.WriteOption{
@@ -103,7 +103,7 @@ func TestTable_GetItem(t *testing.T) {
 			DyTagInfo: "DyTag",
 		}
 		table := GetTestTable(t)
-		err := table.PutItem(book, nil)
+		err := table.PutItem(book, nil, nil)
 		assert.NoError(t, err)
 		book1 := &Book{}
 		err = table.GetItem("Tom", "Hello", nil, book1)
@@ -126,7 +126,7 @@ func TestTable_DeleteItem(t *testing.T) {
 			Age:    10,
 		}
 		table := GetTestTable(t)
-		err := table.PutItem(book, nil)
+		err := table.PutItem(book, nil, nil)
 		assert.NoError(t, err)
 		err = table.DeleteItem("Tom", "3", nil, nil)
 		assert.NoError(t, err)
@@ -149,7 +149,7 @@ func TestTable_Query(t *testing.T) {
 			Title:  "Book" + strconv.Itoa(i),
 			Age:    int64(i),
 		})
-		table.PutItem(&allBooks[i], nil)
+		table.PutItem(&allBooks[i], nil, nil)
 	}
 	t.Run("ASC page", func(t *testing.T) {
 		books := []Book{}
@@ -224,7 +224,7 @@ func ExampleTable_Query() {
 			Title:  "Book" + strconv.Itoa(i),
 			Age:    int64(i),
 		})
-		table.PutItem(&allBooks[i], nil)
+		table.PutItem(&allBooks[i], nil, nil)
 	}
 	offsetKey := make(odm.Map)
 	books := []Book{}

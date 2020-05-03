@@ -5,7 +5,7 @@ ODM:
     ✔ types 这个包名感觉容易冲突， @done(20-05-01 15:07)
     ☐ 优化异常处理使用 fmt.Errorf("xxx%w", err) @high 
     Design:
-        ☐ 将方言和接口分开 DB，odm.Open()出来的DB包含易用性接口，但各个方言实现，只需要考虑底层的
+        ✔ 将方言和接口分开 DB，odm.Open()出来的DB包含易用性接口，但各个方言实现，只需要考虑底层的 @done(20-05-02 21:49)
     Table:
         ✔ Test case @done(20-05-01 15:07)
         ✔ Insert @done(20-05-01 15:06)
@@ -14,17 +14,17 @@ ODM:
         ✔ Find @done(20-05-01 15:06)
         ✔ Delete @done(20-05-01 15:06)
         ✔ Example @done(20-05-01 19:41)
-        ☐ Key Operation refactor. 不再需要传map @today 
+        ✔ Key Operation refactor. 不再需要传map @done(20-05-02 21:49)
     DB:
-        ✔ CreateTable at localhost @critical @today @done(20-05-02 16:40)
-        ☐ DeleteTable at localhost @today 
+        ✔ CreateTable at localhost @done(20-05-02 16:40)
+        ✔ DeleteTable at localhost @done(20-05-02 21:49)
         ☐ TransactWrite @critical 
         ☐ TransactGet @critical 
-        ☐ BatchWrite @high 
-        ☐ BatchRead @critical 
+        ☐ BatchWrite
+        ☐ BatchRead @high
     ODMDB:
         ☐ 缓存反射元信息，优化性能
-        ☐ 更方便的Update，传key和map
+        ☐ 更方便的Update，传key和map @high 
         ☐ 在DB上封装类似Gorm的易用性操作
     连接池: 
         ✔ odm.Open() @done(20-05-01 19:41) @lasted(50s)
@@ -32,6 +32,11 @@ ODM:
         ☐ 超时等异常处理
         ☐ 理解DynamoDB的Session和直接Config的区别。
         ☐ 了解DynamoDB是长连接还是短连接
+    Cache:
+        ☐ 缓存层设计
+    Base层:
+        ☐ Apollo
+        ☐ 日志（能够追踪是哪个服务调用的，调用链）
     Schema生成:
         ☐ 数据库字段按小写下划线
     问题:
