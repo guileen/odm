@@ -109,10 +109,10 @@ type DB struct {
 	tableMap map[string]*Table
 }
 
-// DeleteTable only allowed on localhost
-func (db *DB) DeleteTable(tableName string) error {
+// DropTable only allowed on localhost
+func (db *DB) DropTable(tableName string) error {
 	if !db.enableTableDeletion {
-		panic("DeleteTable is not allowed")
+		panic("DropTable is not allowed")
 	}
 	conn := db.GetConn()
 	_, err := conn.DeleteTable(&dynamodb.DeleteTableInput{
@@ -121,7 +121,7 @@ func (db *DB) DeleteTable(tableName string) error {
 	return err
 }
 
-func (db *DB) createTableIfNotExists(meta *odm.TableMeta) error {
+func (db *DB) CreateTableIfNotExists(meta *odm.TableMeta) error {
 	_meta, err := db.GetTableMeta(meta.TableName)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); !ok || aerr.Code() != dynamodb.ErrCodeResourceNotFoundException {
@@ -132,14 +132,14 @@ func (db *DB) createTableIfNotExists(meta *odm.TableMeta) error {
 		// table exists
 		return nil
 	}
-	return db.createTable(meta)
+	return db.CreateTable(meta)
 }
 
 func (db *DB) getFieldName(f *odm.FieldDefine) string {
 	return f.GetDBFieldName(dbName)
 }
 
-func (db *DB) createTable(tableMeta *odm.TableMeta) error {
+func (db *DB) CreateTable(tableMeta *odm.TableMeta) error {
 	conn := db.GetConn()
 	// Key definition.
 	keySchema := []*dynamodb.KeySchemaElement{
@@ -247,7 +247,7 @@ func (db *DB) Close() {
 	// Nothing to do.
 }
 
-func (db *DB) BatchGetItem(options []odm.BatchGet, unprocessedItems *[]odm.BatchGet, results ...interface{}) error {
+func (db *DB) BatchGetItem(options []*odm.BatchGet, unprocessedItems *[]*odm.BatchGet, results ...interface{}) error {
 	input := &dynamodb.BatchGetItemInput{
 		RequestItems: map[string]*dynamodb.KeysAndAttributes{},
 	}
@@ -317,19 +317,41 @@ func (db *DB) BatchGetItem(options []odm.BatchGet, unprocessedItems *[]odm.Batch
 				rawItem.Keys = append(rawItem.Keys, key)
 			}
 		}
-		*unprocessedItems = append(*unprocessedItems, rawItem)
+		*unprocessedItems = append(*unprocessedItems, &rawItem)
 	}
 	return err
 }
 
-func (db *DB) BatchWriteItem(options []odm.BatchWrite, unprocessedItems *[]odm.BatchWrite) error {
+func (db *DB) BatchWriteItem(options []*odm.BatchWrite, unprocessedItems *[]*odm.BatchWrite) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (db *DB) TransactGetItems(gets []odm.TransGet, results ...odm.Model) error {
+func (db *DB) TransactGetItems(gets []*odm.TransactGet, results ...odm.Model) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (db *DB) TransactWriteItems(writes []odm.TransWrite) error {
-	panic("not implemented") // TODO: Implement
+func (db *DB) TransactWriteItems(writes []*odm.TransactWrite) error {
+	items := []*dynamodb.TransactWriteItem{}
+	for _, write := range writes {
+		item := &dynamodb.TransactWriteItem{}
+		if write.ConditionCheck != nil {
+
+		}
+		if write.Delete != nil {
+
+		}
+		if write.Update != nil {
+
+		}
+		if write.Put != nil {
+
+		}
+		items = append(items, item)
+	}
+	input := &dynamodb.TransactWriteItemsInput{
+		TransactItems: items,
+	}
+	// input.ClientRequestToken = aws.String("")
+	_, err := db.GetConn().TransactWriteItems(input)
+	return err
 }

@@ -8,17 +8,17 @@ import (
 )
 
 var dialectMap map[string]Dialect
-var tableCreationEnabled bool
+var dropTableEnabled bool
 
 func init() {
 	dialectMap = make(map[string]Dialect)
 	if strings.HasSuffix(os.Args[0], ".test") || flag.Lookup("test.v") != nil {
-		tableCreationEnabled = true
+		dropTableEnabled = true
 	}
 }
 
-func IsTableCreationEnabled() bool {
-	return tableCreationEnabled
+func IsDropTableEnabled() bool {
+	return dropTableEnabled
 }
 
 func RegisterDialect(dbtype string, opener Dialect) {

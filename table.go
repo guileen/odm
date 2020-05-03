@@ -22,7 +22,7 @@ type Table interface {
 }
 
 type WriteOption struct {
-	Filter      string
+	Condition   string
 	NameParams  map[string]string
 	ValueParams Map
 }

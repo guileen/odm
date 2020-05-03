@@ -25,17 +25,6 @@ var dbpath = "AccessKey=123;SecretKey=456;Token=789;Region=localhost;Endpoint=ht
 // Development environment
 // var dbpath = "AccessKey=AKIAX24KZ5UPZSJY4FGV;SecretKey=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;Region=cn-northwest-1"
 
-func resetDB(t *testing.T) {
-	db, err := odm.Open("dynamo", dbpath)
-	assert.NoError(t, err)
-	assert.NotNil(t, db)
-	db.DeleteTable("book")
-	table := db.Table(&Book{})
-	// touch the table.
-	err = table.GetItem("A", "B", nil, nil)
-	assert.NoError(t, err)
-}
-
 func GetTestTable(t *testing.T) odm.Table {
 	db, err := odm.Open("dynamo", dbpath)
 	assert.NoError(t, err)

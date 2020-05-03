@@ -17,8 +17,9 @@ ODM:
         ✔ Key Operation refactor. 不再需要传map @done(20-05-02 21:49)
     DB:
         ✔ CreateTable at localhost @done(20-05-02 16:40)
-        ✔ DeleteTable at localhost @done(20-05-02 21:49)
-        ☐ TransactWrite @critical 
+            ☐ 支持创建索引 @high 
+        ✔ DropTable at localhost @done(20-05-02 21:49)
+        ☐ TransactWrite @critical @today 
         ☐ TransactGet @critical 
         ☐ BatchWrite
         ☐ BatchRead @high
@@ -37,8 +38,11 @@ ODM:
     Base层:
         ☐ Apollo
         ☐ 日志（能够追踪是哪个服务调用的，调用链）
+        ☐ 消耗的日志
     Schema生成:
         ☐ 数据库字段按小写下划线
+    错误码规范:
+        ☐ Error Codes.
     问题:
         ☐ 1.Dynamo支不支持长连接问题
         ☐ 2.根据条件同时更新多条记录的问题，批量删除

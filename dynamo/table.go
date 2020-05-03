@@ -32,7 +32,7 @@ func (t *Table) GetConn() (*dynamodb.DynamoDB, error) {
 		}
 		t.TableMeta = *meta
 	} else {
-		err := t.db.createTableIfNotExists(&t.TableMeta)
+		err := t.db.CreateTableIfNotExists(&t.TableMeta)
 		if err != nil {
 			return nil, err
 		}
@@ -110,8 +110,8 @@ func (t *Table) PutItem(item odm.Model, cond *odm.WriteOption, result odm.Model)
 				return err
 			}
 		}
-		if cond.Filter != "" {
-			input.ConditionExpression = aws.String(cond.Filter)
+		if cond.Condition != "" {
+			input.ConditionExpression = aws.String(cond.Condition)
 		}
 		if cond.NameParams != nil {
 			input.ExpressionAttributeNames = make(map[string]*string)
@@ -151,8 +151,8 @@ func (t *Table) UpdateItem(pk interface{}, sk interface{}, updateExpression stri
 				return err
 			}
 		}
-		if cond.Filter != "" {
-			input.ConditionExpression = aws.String(cond.Filter)
+		if cond.Condition != "" {
+			input.ConditionExpression = aws.String(cond.Condition)
 		}
 		if cond.NameParams != nil {
 			input.ExpressionAttributeNames = make(map[string]*string)
@@ -226,8 +226,8 @@ func (t *Table) DeleteItem(pk interface{}, sk interface{}, cond *odm.WriteOption
 				return err
 			}
 		}
-		if cond.Filter != "" {
-			input.ConditionExpression = aws.String(cond.Filter)
+		if cond.Condition != "" {
+			input.ConditionExpression = aws.String(cond.Condition)
 		}
 		if cond.NameParams != nil {
 			input.ExpressionAttributeNames = make(map[string]*string)
