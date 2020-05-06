@@ -35,13 +35,13 @@ func Test_ConnectString(t *testing.T) {
 }
 
 type Account struct {
-	Uid     int   `odm:"PK" json:"id"`
+	Id      int   `odm:"PK" json:"id"`
 	Balance int64 `json:"balance"`
 }
 
 type Bag struct {
-	Uid       int    `odm:"PK" json"uid"`
-	ProductId string `odm:"SK" json"product_id`
+	Uid       int    `odm:"PK" json:"uid"`
+	ProductId string `odm:"SK" json:"product_id"`
 	Count     int    `json:"count"`
 }
 
@@ -66,7 +66,6 @@ const (
 )
 
 func ExampleDB_TransactWriteItems() {
-	fmt.Println("Test begin")
 	db, _ := odm.Open("dynamo", dbpath)
 	accounts, _ := db.ResetTable(&Account{})
 	bags, _ := db.ResetTable(&Bag{})
@@ -76,8 +75,8 @@ func ExampleDB_TransactWriteItems() {
 	tid := 1234
 	// 用户账户余额1000
 	accounts.PutItem(&Account{
-		Uid:     uid,
-		Balance: 1000,
+		Id:      uid,
+		Balance: 100000,
 	}, nil, nil)
 	// 添加商品
 	products.PutItem(&Product{
@@ -121,44 +120,57 @@ func ExampleDB_TransactWriteItems() {
 	// 扣钱
 	writeItems = append(writeItems, &odm.TransactWrite{
 		Update: &odm.Update{
-			TableName:    "account",
-			PartitionKey: uid,
-			Expression:   "SET balance=balance-:fee",
-			Condition:    "balance >= :fee",
-			ValueParams: odm.Map{
-				":fee": fee,
+			TableName: "account",
+			Key: odm.Map{
+				"id": uid,
+			},
+			Expression: "SET balance=balance-:fee",
+			WriteOption: &odm.WriteOption{
+				Condition: "balance >= :fee",
+				ValueParams: odm.Map{
+					":fee": fee,
+				},
 			},
 		},
 	})
 	// 改状态
 	writeItems = append(writeItems, &odm.TransactWrite{
 		Update: &odm.Update{
-			TableName:    "order",
-			PartitionKey: uid,
-			SortingKey:   tid,
-			Expression:   "SET #status=:status",
-			Condition:    "status=:preStatus",
-			NameParams: map[string]string{
-				"#status": "status",
+			TableName: "order",
+			Key: odm.Map{
+				"uid": uid,
+				"tid": tid,
 			},
-			ValueParams: odm.Map{
-				":preStatus": StatusWaitPay,
-				":status":    StatusPayed,
+			Expression: "SET #status=:status",
+			WriteOption: &odm.WriteOption{
+				Condition: "#status=:preStatus",
+				NameParams: map[string]string{
+					"#status": "status",
+				},
+				ValueParams: odm.Map{
+					":preStatus": StatusWaitPay,
+					":status":    StatusPayed,
+				},
 			},
 		},
 	})
 	for pid, count := range cart {
 		writeItems = append(writeItems, &odm.TransactWrite{
 			Update: &odm.Update{
-				TableName:    "bag",
-				PartitionKey: uid,
-				SortingKey:   pid,
-				Expression:   "SET #count=#count+:count",
-				NameParams: map[string]string{
-					"#count": "count",
+				TableName: "bag",
+				Key: odm.Map{
+					"uid":        uid,
+					"product_id": pid,
 				},
-				ValueParams: odm.Map{
-					":count": count,
+				// Expression: "SET #count=#count+:count",
+				Expression: "ADD #count :count",
+				WriteOption: &odm.WriteOption{
+					NameParams: map[string]string{
+						"#count": "count",
+					},
+					ValueParams: odm.Map{
+						":count": count,
+					},
 				},
 			},
 		})
@@ -168,14 +180,15 @@ func ExampleDB_TransactWriteItems() {
 		fmt.Printf("Fail to execute transaction %v", err)
 		return
 	}
-	bagItems := &Bag{}
+	bagItems := []Bag{}
 	bags.Query(&odm.QueryOption{
 		KeyFilter: "uid=:uid",
 		ValueParams: odm.Map{
 			":uid": uid,
 		},
-	}, nil, bagItems)
-	fmt.Println(bags)
+		Limit: 10,
+	}, nil, &bagItems)
+	fmt.Println(bagItems)
 	// Output:
-	// Hello world
+	// [{10 Huawei 1} {10 iPhone 1}]
 }

@@ -20,6 +20,10 @@ ODM:
             ☐ 支持创建索引 @high 
         ✔ DropTable at localhost @done(20-05-02 21:49)
         ☐ TransactWrite @critical @today 
+            ✔ Update @done(20-05-06 13:27)
+            ☐ Put
+            ☐ Delete
+            ☐ ConditionCHeck
         ☐ TransactGet @critical 
         ☐ BatchWrite
         ☐ BatchRead @high
@@ -27,6 +31,7 @@ ODM:
         ☐ 缓存反射元信息，优化性能
         ☐ 更方便的Update，传key和map @high 
         ☐ 在DB上封装类似Gorm的易用性操作
+        ☐ Transaction链式操作
     连接池: 
         ✔ odm.Open() @done(20-05-01 19:41) @lasted(50s)
         ☐ !连接池 ...

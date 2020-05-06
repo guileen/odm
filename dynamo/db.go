@@ -330,21 +330,69 @@ func (db *DB) TransactGetItems(gets []*odm.TransactGet, results ...odm.Model) er
 	panic("not implemented") // TODO: Implement
 }
 
+func convertUpdate(update *odm.Update) (*dynamodb.Update, error) {
+	keyMap, err := dynamodbattribute.MarshalMap(update.Key)
+	if err != nil {
+		return nil, err
+	}
+	_opts := &dynamodb.Update{TableName: aws.String(update.TableName), Key: keyMap,
+		UpdateExpression: aws.String(update.Expression),
+	}
+	if update.WriteOption != nil {
+		if update.WriteOption.Condition != "" {
+			_opts.ConditionExpression = aws.String(update.WriteOption.Condition)
+		}
+		if update.WriteOption.NameParams != nil {
+			_opts.ExpressionAttributeNames = make(map[string]*string)
+			convertAttributeNames(update.WriteOption.NameParams, _opts.ExpressionAttributeNames)
+		}
+		if update.WriteOption.ValueParams != nil {
+			_opts.ExpressionAttributeValues, err = dynamodbattribute.MarshalMap(update.WriteOption.ValueParams)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return _opts, nil
+}
+
+func convertPut(put *odm.Put) (*dynamodb.Put, error) {
+	return &dynamodb.Put{
+		TableName: aws.String(put.TableName),
+	}, nil
+}
+
+func convertDelete(deleted *odm.Delete) (*dynamodb.Delete, error) {
+	return &dynamodb.Delete{}, nil
+}
+
 func (db *DB) TransactWriteItems(writes []*odm.TransactWrite) error {
 	items := []*dynamodb.TransactWriteItem{}
 	for _, write := range writes {
 		item := &dynamodb.TransactWriteItem{}
 		if write.ConditionCheck != nil {
-
+			item.ConditionCheck = &dynamodb.ConditionCheck{}
 		}
 		if write.Delete != nil {
-
+			delete, err := convertDelete(write.Delete)
+			if err != nil {
+				return err
+			}
+			item.Delete = delete
 		}
 		if write.Update != nil {
-
+			update, err := convertUpdate(write.Update)
+			if err != nil {
+				return err
+			}
+			item.Update = update
 		}
 		if write.Put != nil {
-
+			put, err := convertPut(write.Put)
+			if err != nil {
+				return err
+			}
+			item.Put = put
 		}
 		items = append(items, item)
 	}

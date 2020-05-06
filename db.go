@@ -52,8 +52,7 @@ type ConditionCheck struct {
 	TableName   string
 	NameParams  map[string]string
 	ValueParams Map
-	PK          string
-	SK          string
+	Key         Map
 	// enum: NONE and ALL_OLD
 	ReturnValuesOnConditionCheckFailure string
 }
@@ -61,32 +60,24 @@ type ConditionCheck struct {
 type Put struct {
 	TableName   string
 	Item        interface{}
-	Condition   string
-	NameParams  map[string]string
-	ValueParams Map
+	WriteOption *WriteOption
 	// enum: NONE and ALL_OLD  (for PUT, DELETE)
 	ReturnValuesOnConditionCheckFailure string
 }
 
 type Update struct {
-	TableName    string
-	Expression   string
-	PartitionKey interface{}
-	SortingKey   interface{}
-	Condition    string
-	NameParams   map[string]string
-	ValueParams  Map
+	TableName   string
+	Expression  string
+	Key         Map
+	WriteOption *WriteOption
 	// enum: NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW (for UPDATE)
 	ReturnValuesOnConditionCheckFailure string
 }
 
 type Delete struct {
-	TableName    string
-	PartitionKey interface{}
-	SortingKey   interface{}
-	Condition    string
-	NameParams   map[string]string
-	ValueParams  Map
+	TableName   string
+	Key         Map
+	WriteOption *WriteOption
 	// enum: NONE and ALL_OLD  (for PUT, DELETE)
 	ReturnValuesOnConditionCheckFailure string
 }
