@@ -33,8 +33,11 @@ type DialectDB interface {
 
 type TransactGet struct {
 	TableName  string
+	Meta       *TableMeta
 	Select     string
 	NameParams map[string]string
+	HashKey    interface{}
+	RangeKey   interface{}
 	Key        Map
 }
 
@@ -52,6 +55,8 @@ type ConditionCheck struct {
 	TableName   string
 	NameParams  map[string]string
 	ValueParams Map
+	HashKey     interface{}
+	RangeKey    interface{}
 	Key         Map
 	// enum: NONE and ALL_OLD
 	ReturnValuesOnConditionCheckFailure string
@@ -68,7 +73,8 @@ type Put struct {
 type Update struct {
 	TableName   string
 	Expression  string
-	Key         Map
+	HashKey     interface{}
+	RangeKey    interface{}
 	WriteOption *WriteOption
 	// enum: NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW (for UPDATE)
 	ReturnValuesOnConditionCheckFailure string
@@ -76,7 +82,8 @@ type Update struct {
 
 type Delete struct {
 	TableName   string
-	Key         Map
+	HashKey     interface{}
+	RangeKey    interface{}
 	WriteOption *WriteOption
 	// enum: NONE and ALL_OLD  (for PUT, DELETE)
 	ReturnValuesOnConditionCheckFailure string

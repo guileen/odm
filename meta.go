@@ -140,8 +140,8 @@ func getFieldDefine(f *reflect.StructField) *FieldDefine {
 	d := &FieldDefine{
 		ModelFieldName: f.Name,
 		Type:           t,
-		PK:             odmTags[0] == "PK",
-		SK:             odmTags[0] == "SK",
+		PK:             odmTags[0] == "PK" || odmTags[0] == "hashkey",
+		SK:             odmTags[0] == "SK" || odmTags[0] == "rangekey",
 		OmitEmpty:      len(jsonTags) > 1 && jsonTags[1] == "omitempty",
 		SchemaFieldName: map[string]string{
 			"json":     util.StringsOr(jsonTags[0], f.Name),

@@ -1,6 +1,7 @@
 package dynamo
 
 import (
+	"errors"
 	"strings"
 
 	"git.devops.com/go/odm"
@@ -232,6 +233,25 @@ func (db *DB) GetTableMeta(tableName string) (*odm.TableMeta, error) {
 	return meta, err
 }
 
+func (db *DB) key(tableName string, hashKey interface{}, rangeKey interface{}) (map[string]*dynamodb.AttributeValue, error) {
+	meta, err := db.GetTableMeta(tableName)
+	if err != nil {
+		return nil, err
+	}
+	if meta == nil || meta.PK == nil {
+		return nil, errors.New("PK is not found for table " + tableName)
+	}
+	pk := meta.PK.GetDBFieldName(dbName)
+	key := odm.Map{pk: hashKey}
+	if meta.SK != nil {
+		sk := meta.SK.GetDBFieldName(dbName)
+		if sk != "" && rangeKey != nil {
+			key[sk] = rangeKey
+		}
+	}
+	return dynamodbattribute.MarshalMap(key)
+}
+
 func (db *DB) GetConn() *dynamodb.DynamoDB {
 	return db.conn
 }
@@ -330,12 +350,14 @@ func (db *DB) TransactGetItems(gets []*odm.TransactGet, results ...odm.Model) er
 	panic("not implemented") // TODO: Implement
 }
 
-func convertUpdate(update *odm.Update) (*dynamodb.Update, error) {
-	keyMap, err := dynamodbattribute.MarshalMap(update.Key)
+func (db *DB) convertUpdate(update *odm.Update) (*dynamodb.Update, error) {
+	keyMap, err := db.key(update.TableName, update.HashKey, update.RangeKey)
 	if err != nil {
 		return nil, err
 	}
-	_opts := &dynamodb.Update{TableName: aws.String(update.TableName), Key: keyMap,
+	_opts := &dynamodb.Update{
+		TableName:        aws.String(update.TableName),
+		Key:              keyMap,
 		UpdateExpression: aws.String(update.Expression),
 	}
 	if update.WriteOption != nil {
@@ -356,14 +378,21 @@ func convertUpdate(update *odm.Update) (*dynamodb.Update, error) {
 	return _opts, nil
 }
 
-func convertPut(put *odm.Put) (*dynamodb.Put, error) {
+func (db *DB) convertPut(put *odm.Put) (*dynamodb.Put, error) {
+	panic("not implemented")
 	return &dynamodb.Put{
 		TableName: aws.String(put.TableName),
 	}, nil
 }
 
-func convertDelete(deleted *odm.Delete) (*dynamodb.Delete, error) {
+func (db *DB) convertDelete(deleted *odm.Delete) (*dynamodb.Delete, error) {
+	panic("not implemented")
 	return &dynamodb.Delete{}, nil
+}
+
+func (db *DB) convertConditionCheck(check *odm.ConditionCheck) (*dynamodb.ConditionCheck, error) {
+	panic("not implemented")
+	return &dynamodb.ConditionCheck{}, nil
 }
 
 func (db *DB) TransactWriteItems(writes []*odm.TransactWrite) error {
@@ -371,24 +400,28 @@ func (db *DB) TransactWriteItems(writes []*odm.TransactWrite) error {
 	for _, write := range writes {
 		item := &dynamodb.TransactWriteItem{}
 		if write.ConditionCheck != nil {
-			item.ConditionCheck = &dynamodb.ConditionCheck{}
+			conditionCheck, err := db.convertConditionCheck(write.ConditionCheck)
+			if err != nil {
+				return err
+			}
+			item.ConditionCheck = conditionCheck
 		}
 		if write.Delete != nil {
-			delete, err := convertDelete(write.Delete)
+			delete, err := db.convertDelete(write.Delete)
 			if err != nil {
 				return err
 			}
 			item.Delete = delete
 		}
 		if write.Update != nil {
-			update, err := convertUpdate(write.Update)
+			update, err := db.convertUpdate(write.Update)
 			if err != nil {
 				return err
 			}
 			item.Update = update
 		}
 		if write.Put != nil {
-			put, err := convertPut(write.Put)
+			put, err := db.convertPut(write.Put)
 			if err != nil {
 				return err
 			}

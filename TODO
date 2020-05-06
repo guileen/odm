@@ -11,19 +11,26 @@ ODM:
         ✔ Insert @done(20-05-01 15:06)
         ✔ Update @done(20-05-01 15:06)
         ✔ Get @done(20-05-01 15:06)
-        ✔ Find @done(20-05-01 15:06)
+        ✔ Query @done(20-05-01 15:06)
+            ☐ Index query @today @critical 
+            ☐ 自动填充满足limit要求的数据（循环获取）
+            ☐ 分页API完整串联
         ✔ Delete @done(20-05-01 15:06)
         ✔ Example @done(20-05-01 19:41)
         ✔ Key Operation refactor. 不再需要传map @done(20-05-02 21:49)
     DB:
         ✔ CreateTable at localhost @done(20-05-02 16:40)
             ☐ 支持创建索引 @high 
+            ☐ 支持 GSI @today 
+            ☐ 支持 LSI @today 
         ✔ DropTable at localhost @done(20-05-02 21:49)
         ☐ TransactWrite @critical @today 
             ✔ Update @done(20-05-06 13:27)
             ☐ Put
             ☐ Delete
             ☐ ConditionCHeck
+            ☐ ReturnValuesOnConditionCheckFailed
+        ☐ GetTableMeta(tableName) 缓存性能优化
         ☐ TransactGet @critical 
         ☐ BatchWrite
         ☐ BatchRead @high
@@ -53,3 +60,7 @@ ODM:
         ☐ 2.根据条件同时更新多条记录的问题，批量删除
         ☐ 3.返回值1M限制？
         ☐ 4.query缓存设计
+
+    其他任务临时记录:
+        ☐ MQ封装
+        ☐ Group Server

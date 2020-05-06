@@ -7,11 +7,11 @@ type Table interface {
 	// put a item, will replace entire item.
 	PutItem(item Model, cond *WriteOption, result Model) error
 	// Update attributes. item will fill base on ReturnValues.
-	UpdateItem(partitionKey interface{}, sortingKey interface{}, updateExpr string, opt *WriteOption, result Model) error
+	UpdateItem(hashKey interface{}, rangeKey interface{}, updateExpr string, opt *WriteOption, result Model) error
 	// get a item
-	GetItem(partitionKey interface{}, sortingKey interface{}, opt *GetOption, result Model) error
+	GetItem(hashKey interface{}, rangeKey interface{}, opt *GetOption, result Model) error
 	// returns deleted item
-	DeleteItem(partitionKey interface{}, sortingKey interface{}, opt *WriteOption, result Model) error
+	DeleteItem(hashKey interface{}, rangeKey interface{}, opt *WriteOption, result Model) error
 	// Query and fill in items, StartKey will be replaced after query
 	// result is slice of Model
 	// Example:

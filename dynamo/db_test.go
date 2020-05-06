@@ -120,10 +120,8 @@ func ExampleDB_TransactWriteItems() {
 	// 扣钱
 	writeItems = append(writeItems, &odm.TransactWrite{
 		Update: &odm.Update{
-			TableName: "account",
-			Key: odm.Map{
-				"id": uid,
-			},
+			TableName:  "account",
+			HashKey:    uid,
 			Expression: "SET balance=balance-:fee",
 			WriteOption: &odm.WriteOption{
 				Condition: "balance >= :fee",
@@ -136,11 +134,9 @@ func ExampleDB_TransactWriteItems() {
 	// 改状态
 	writeItems = append(writeItems, &odm.TransactWrite{
 		Update: &odm.Update{
-			TableName: "order",
-			Key: odm.Map{
-				"uid": uid,
-				"tid": tid,
-			},
+			TableName:  "order",
+			HashKey:    uid,
+			RangeKey:   tid,
 			Expression: "SET #status=:status",
 			WriteOption: &odm.WriteOption{
 				Condition: "#status=:preStatus",
@@ -158,10 +154,8 @@ func ExampleDB_TransactWriteItems() {
 		writeItems = append(writeItems, &odm.TransactWrite{
 			Update: &odm.Update{
 				TableName: "bag",
-				Key: odm.Map{
-					"uid":        uid,
-					"product_id": pid,
-				},
+				HashKey:   uid,
+				RangeKey:  pid,
 				// Expression: "SET #count=#count+:count",
 				Expression: "ADD #count :count",
 				WriteOption: &odm.WriteOption{
@@ -191,4 +185,97 @@ func ExampleDB_TransactWriteItems() {
 	fmt.Println(bagItems)
 	// Output:
 	// [{10 Huawei 1} {10 iPhone 1}]
+}
+
+func ExampleDB_Transact() {
+	db, _ := odm.Open("dynamo", dbpath)
+	accounts := db.Table(&Account{})
+	bags := db.Table(&Bag{})
+	products := db.Table(&Product{})
+	orders := db.Table(&Order{})
+	uid := 20
+	tid := 2345
+	// 用户账户余额1000
+	accounts.PutItem(&Account{
+		Id:      uid,
+		Balance: 100000,
+	}, nil, nil)
+	// 添加商品
+	products.PutItem(&Product{
+		Id:    "iPhone",
+		Price: 6000,
+	}, nil, nil)
+	products.PutItem(&Product{
+		Id:    "Huawei",
+		Price: 3000,
+	}, nil, nil)
+	// 用户选择商品
+	cart := map[string]int{
+		"iPhone": 1,
+		"Huawei": 1,
+	}
+	fee := 0
+	// TODO: 一致性读取商品价格
+	// db.TransactGetItems([]odm.TransGet{
+
+	// })
+	// caculate fee
+	fee = 9000
+
+	// 保存Order
+	err := orders.PutItem(&Order{
+		Uid:      uid,
+		Tid:      tid,
+		Cart:     cart,
+		Status:   StatusWaitPay,
+		TotalFee: fee,
+	}, &odm.WriteOption{
+		// 仅当数据不存在时插入
+		Condition: "attribute_not_exists(tid)",
+	}, nil)
+	if err != nil {
+		fmt.Printf("Error to save order %v", err)
+		return
+	}
+	// 用户付款时传入订单id，从余额中扣款，改Order状态为已支付
+	transact := db.Transact().Update("account", uid, nil, "SET balance=balance-:fee", &odm.WriteOption{
+		Condition: "balance>=:fee",
+		ValueParams: odm.Map{
+			":fee": fee,
+		},
+	}, nil).Update("order", uid, tid, "SET #status=:status", &odm.WriteOption{
+		Condition:  "#status=:preStatus",
+		NameParams: map[string]string{"#status": "status"},
+		ValueParams: odm.Map{
+			":preStatus": StatusWaitPay,
+			":status":    StatusPayed,
+		},
+	}, nil)
+	//
+	for pid, count := range cart {
+		transact.Update("bag", uid, pid, "ADD #count :count", &odm.WriteOption{
+			NameParams: map[string]string{
+				"#count": "count",
+			},
+			ValueParams: odm.Map{
+				":count": count,
+			},
+		}, nil)
+	}
+	err = transact.Commit()
+	if err != nil {
+		fmt.Printf("Fail to execute transaction %v", err)
+		return
+	}
+	bagItems := []Bag{}
+	bags.Query(&odm.QueryOption{
+		KeyFilter: "uid=:uid",
+		ValueParams: odm.Map{
+			":uid": uid,
+		},
+		Limit: 10,
+	}, nil, &bagItems)
+	fmt.Println(bagItems)
+	// Output:
+	// [{20 Huawei 1} {20 iPhone 1}]
 }

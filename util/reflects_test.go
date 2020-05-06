@@ -7,8 +7,8 @@ import (
 )
 
 type Book struct {
-	Author string `odm:"partitionKey"`
-	Title  string `odm:"sortingKey"`
+	Author string `odm:"hashKey"`
+	Title  string `odm:"rangeKey"`
 	Age    int
 }
 
