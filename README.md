@@ -1,3 +1,5 @@
+# 该项目目前仅供演示使用，后续代码已闭源。
+
 # golang ODM(Object Document Mapper) abstract layer
 
 1. 首先支持 DynamoDB，按DynamoDB的习惯来操作。
